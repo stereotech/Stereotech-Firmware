@@ -1,7 +1,7 @@
 before_script:
- - apt-get update -qq && apt-get install -y --force-yes software-properties-common
- - add-apt-repository -y ppa:team-gcc-arm-embedded/ppa
- - apt-get update -qq && apt-get install -y --force-yes gcc-arm-none-eabi
+ - /builds/stereotech/stefirmware/smoothieware/linux_install
+ - apt-get update -qq && apt-get install -y -forece-yes libc6-dev-i386 build-essential
+ - /builds/stereotech/stefirmware/smoothieware/BuildShell
 
 stages:
   - build

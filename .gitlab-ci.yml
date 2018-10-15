@@ -1,5 +1,5 @@
 before_script:
-  - linux_install
+  - /builds/stereotech/stefirmware/smoothieware/linux_install
 
 stages:
   - build

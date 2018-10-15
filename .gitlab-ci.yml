@@ -1,6 +1,4 @@
-artifacts:
-  paths:
-    - LPC1768/
+
 
 before_script:
   - /builds/stereotech/stefirmware/smoothieware/linux_install

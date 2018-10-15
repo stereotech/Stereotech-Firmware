@@ -1,0 +1,15 @@
+before_script:
+  - linux_install
+
+stages:
+  - build
+  - test
+
+run-build:
+  stage: build
+  script:
+    - make clean all
+
+artifacts:
+    paths:
+      - LPC1768/*

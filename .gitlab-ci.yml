@@ -1,4 +1,5 @@
 before_script:
+ - export DEBIAN_FRONTEND=noninteractive
  - /builds/stereotech/stefirmware/smoothieware/linux_install
  - apt-get update -qq && apt-get install -y --force-yes apt-utils libc6-dev-i386 build-essential
  - dpkg --add-architecture i386

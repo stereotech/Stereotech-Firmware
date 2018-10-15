@@ -1,8 +1,7 @@
 before_script:
  - apt-get update -qq && apt-get install -y --force-yes software-properties-common
  - add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
- - apt-get update -qq
- - apt-get install -y --force-yes gcc-arm-none-eabi
+ - apt-get update -qq && apt-get install -y --force-yes gcc-arm-none-eabi
 
 stages:
   - build

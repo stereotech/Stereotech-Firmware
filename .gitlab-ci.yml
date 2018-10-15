@@ -1,11 +1,12 @@
 before_script:
-# - export DEBIAN_FRONTEND=noninteractive
-# - apt-get update -qq && apt-get install -y apt-utils libc6-dev-i386 build-essential lib32z1 lib32ncurses5
-# - /builds/stereotech/stefirmware/smoothieware/travis_install
-# - /builds/stereotech/stefirmware/smoothieware/BuildShell
-  - add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
-  - apt-get update -qq
-  - apt-get install -y --force-yes gcc-arm-none-eabi
+  - export DEBIAN_FRONTEND=noninteractive
+  - dpkg --add-architecture i386
+  - apt-get update -qq && apt-get install -y apt-utils libc6-dev-i386 build-essential lib32z1 lib32ncurses5
+  - /builds/stereotech/stefirmware/smoothieware/travis_install
+  - /builds/stereotech/stefirmware/smoothieware/BuildShell
+#  - add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
+#  - apt-get update -qq
+#  - apt-get install -y --force-yes gcc-arm-none-eabi
 
 stages:
   - build

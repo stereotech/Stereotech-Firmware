@@ -1,10 +1,13 @@
+artifacts:
+  paths:
+    - LPC1768/
+
 before_script:
   - /builds/stereotech/stefirmware/smoothieware/linux_install
   - /builds/stereotech/stefirmware/smoothieware/BuildShell
 
 stages:
   - build
-  - test
 
 run-build:
   stage: build

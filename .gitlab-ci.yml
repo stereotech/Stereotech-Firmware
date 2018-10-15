@@ -1,3 +1,5 @@
+image: gcc
+
 before_script:
   - export DEBIAN_FRONTEND=noninteractive
   - apt-get update -qq && apt-get install -y apt-utils libc6-dev-i386 build-essential lib32z1 lib32ncurses5
@@ -14,3 +16,6 @@ run-build:
   stage: build
   script:
     - make clean all
+  artifacts:
+    paths:
+      - LPC1768/

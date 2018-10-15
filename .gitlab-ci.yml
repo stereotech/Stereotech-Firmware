@@ -1,9 +1,10 @@
 before_script:
-  - /builds/stereotech/stefirmware/smoothieware/linux_install
-  - /builds/stereotech/stefirmware/smoothieware/BuildShell
   - dpkg --add-architecture i386
   - apt-get update -qq
-  - apt-get install -y -qq libc6:i386 lib32z1 lib32ncurses5
+  - apt-get install -y -qq libc6:i386
+  - /builds/stereotech/stefirmware/smoothieware/linux_install
+  - /builds/stereotech/stefirmware/smoothieware/BuildShell
+
 
 stages:
   - build

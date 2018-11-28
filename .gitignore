@@ -27,3 +27,4 @@ debug
 .settings/language.settings.xml
 .settings/ilg.gnuarmeclipse.managedbuild.cross.prefs
 .project
+.vscode/

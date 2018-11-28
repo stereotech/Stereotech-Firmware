@@ -14,12 +14,12 @@
     #define MAX_ROBOT_ACTUATORS 3
     #else
     // includes 2 extruders
-    #define MAX_ROBOT_ACTUATORS 5
+    #define MAX_ROBOT_ACTUATORS 8
     #endif
 #endif
 
-#if MAX_ROBOT_ACTUATORS < 3 || MAX_ROBOT_ACTUATORS > 6
-#error "MAX_ROBOT_ACTUATORS must be >= 3 and <= 6"
+#if MAX_ROBOT_ACTUATORS < 3 || MAX_ROBOT_ACTUATORS > 8
+#error "MAX_ROBOT_ACTUATORS must be >= 3 and <= 8"
 #endif
 
 #ifndef N_PRIMARY_AXIS

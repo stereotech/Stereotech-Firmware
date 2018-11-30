@@ -13,7 +13,7 @@
     #ifdef CNC
     #define MAX_ROBOT_ACTUATORS 3
     #else
-    // includes 2 extruders
+    // includes 2 extruders and ABC
     #define MAX_ROBOT_ACTUATORS 8
     #endif
 #endif

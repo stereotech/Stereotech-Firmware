@@ -29,6 +29,7 @@
 #include "modules/utils/killbutton/KillButton.h"
 #include "modules/utils/PlayLed/PlayLed.h"
 #include "modules/utils/panel/Panel.h"
+#include "modules/utils/ledstrip/LedStrip.h"
 #include "libs/Network/uip/Network.h"
 #include "Config.h"
 #include "checksumm.h"
@@ -188,6 +189,9 @@ void init() {
     #endif
     #ifndef NO_UTILS_MOTORDRIVERCONTROL
     kernel->add_module( new MotorDriverControl(0) );
+    #endif
+    #ifndef NO_UTILS_LEDSTRIP
+    kernel->add_module( new LedStrip() );
     #endif
     // Create and initialize USB stuff
     u.init();

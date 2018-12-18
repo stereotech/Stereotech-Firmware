@@ -73,7 +73,9 @@ void Block::clear()
     total_move_ticks= 0;
     if(tick_info == nullptr) {
         // we create this once for this block
-        tick_info= new tickinfo_t[n_actuators]; //(tickinfo_t *)malloc(sizeof(tickinfo_t) * n_actuators);
+        tick_info= new tickinfo_t[n_actuators]; 
+    	//THEKERNEL->streams->printf("Set tick info for %u motors", n_actuators);
+        //tick_info = (tickinfo_t *)malloc(sizeof(tickinfo_t) * n_actuators);
         if(tick_info == nullptr) {
             // if we ran out of memory in AHB0 just stop here
             __debugbreak();
@@ -95,8 +97,8 @@ void Block::clear()
 void Block::debug() const
 {
     THEKERNEL->streams->printf("%p: steps-X:%lu Y:%lu Z:%lu ", this, this->steps[0], this->steps[1], this->steps[2]);
-    for (size_t i = E_AXIS; i < n_actuators; ++i) {
-        THEKERNEL->streams->printf("%c:%lu ", 'A' + i-E_AXIS, this->steps[i]);
+    for (size_t i = A_AXIS; i < n_actuators; ++i) {
+        THEKERNEL->streams->printf("%c:%lu ", 'A' + i-A_AXIS, this->steps[i]);
     }
     THEKERNEL->streams->printf("(max:%lu) nominal:r%1.4f/s%1.4f mm:%1.4f acc:%1.2f accu:%lu decu:%lu ticks:%lu rates:%1.4f/%1.4f entry/max:%1.4f/%1.4f exit:%1.4f primary:%d ready:%d locked:%d ticking:%d recalc:%d nomlen:%d time:%f\r\n",
                                this->steps_event_count,

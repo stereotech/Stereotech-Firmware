@@ -62,12 +62,12 @@ void LedStrip::on_config_reload(void *argument)
         this->leds[i]->max_pwm(255);
     }
 
-    this->set_color(0.0F, 0.0F, 255.0F);
+    this->set_color(255.0F, 255.0F, 255.0F);
 
-    THEKERNEL->slow_ticker->attach(1000, this->leds[RED], &Pwm::on_tick);
-    THEKERNEL->slow_ticker->attach(1000, this->leds[GREEN], &Pwm::on_tick);
-    THEKERNEL->slow_ticker->attach(1000, this->leds[BLUE], &Pwm::on_tick);
-    THEKERNEL->slow_ticker->attach(1000, this->leds[WHITE], &Pwm::on_tick);
+    THEKERNEL->slow_ticker->attach(20000, this->leds[RED], &Pwm::on_tick);
+    THEKERNEL->slow_ticker->attach(20000, this->leds[GREEN], &Pwm::on_tick);
+    THEKERNEL->slow_ticker->attach(20000, this->leds[BLUE], &Pwm::on_tick);
+    THEKERNEL->slow_ticker->attach(20000, this->leds[WHITE], &Pwm::on_tick);
 
     THEKERNEL->slow_ticker->attach(1, this, &LedStrip::led_tick);
 }
@@ -80,14 +80,14 @@ void LedStrip::on_gcode_received(void *argument)
     {
         if (gcode->m == 150)
         {
-            if (gcode->has_letter('H') && gcode->has_letter('S') && gcode->has_letter('I'))
+            if (gcode->has_letter('R') && gcode->has_letter('U') && gcode->has_letter('B'))
             {
                 //set color
-                float h = gcode->get_value('H') * this->leds[0]->max_pwm() / 255.0F;
-                float s = gcode->get_value('S') * this->leds[0]->max_pwm() / 255.0F;
-                float i = gcode->get_value('I') * this->leds[0]->max_pwm() / 255.0F;
+                float r = gcode->get_value('R') * this->leds[0]->max_pwm() / 255.0F;
+                float g = gcode->get_value('U') * this->leds[0]->max_pwm() / 255.0F;
+                float b = gcode->get_value('B') * this->leds[0]->max_pwm() / 255.0F;
 
-                this->set_color(h, s, i);
+                this->set_color(r, g, b);
 
                 if (gcode->has_letter('D'))
                 {
@@ -109,47 +109,59 @@ void LedStrip::on_gcode_received(void *argument)
     }
 }
 
-void LedStrip::set_color(float h, float s, float i)
+void LedStrip::set_color(float ri, float gi, float bi)
 {
-    int r, g, b, w;
-    float cos_h, cos_1047_h;
-    h = DEG_TO_RAD * fmod(h * BYTE_TO_360, 360.0F);  // Convert to radians.
-    s = s > 0.0F ? (s < 255.0F ? s : 255.0F) : 0.0F; // clamp S and I to interval [0,1]
-    i = i > 0.0F ? (i < 255.0F ? i : 255.0F) : 0.0F;
 
-    if (h < 2.09439F)
+    float tM = std::max(ri, std::max(gi, bi));
+
+    //If the maximum value is 0, immediately return pure black.
+    if (tM == 0)
     {
-        cos_h = cos(h);
-        cos_1047_h = cos(1.047196667F - h);
-        r = roundf(s * i / 3 * (1 + cos_h / cos_1047_h));
-        g = roundf(s * i / 3 * (1 + (1 - cos_h / cos_1047_h)));
-        b = 0;
+        this->set_pins(0, 0, 0, 0);
+        return;
     }
-    else if (h < 4.188787F)
-    {
-        h = h - 2.09439;
-        cos_h = cos(h);
-        cos_1047_h = cos(1.047196667 - h);
-        g = roundf(s * i / 3 * (1 + cos_h / cos_1047_h));
-        b = roundf(s * i / 3 * (1 + (1 - cos_h / cos_1047_h)));
-        r = 0;
-    }
-    else
-    {
-        h = h - 4.188787F;
-        cos_h = cos(h);
-        cos_1047_h = cos(1.047196667F - h);
-        b = roundf(s * i / 3 * (1 + cos_h / cos_1047_h));
-        r = roundf(s * i / 3 * (1 + (1 - cos_h / cos_1047_h)));
-        g = 0;
-    }
-    w = roundf((255.0F - s) * i);
+
+    //This section serves to figure out what the color with 100% hue is
+    float multiplier = 255.0f / tM;
+    float hR = ri * multiplier;
+    float hG = gi * multiplier;
+    float hB = bi * multiplier;
+
+    //This calculates the Whiteness (not strictly speaking Luminance) of the color
+    float M = std::max(hR, std::max(hG, hB));
+    float m = std::min(hR, std::min(hG, hB));
+    float luminance = ((M + m) / 2.0f - 127.5f) * (255.0f / 127.5f) / multiplier;
+
+    //Calculate the output values
+    int r, g, b, w;
+    r = static_cast<int>(ri - luminance);
+    g = static_cast<int>(gi - luminance);
+    b = static_cast<int>(bi - luminance);
+    w = static_cast<int>(luminance);
 
     this->set_pins(r, g, b, w);
 }
 
 void LedStrip::set_pins(int r, int g, int b, int w)
 {
+    //Trim them so that they are all between 0 and 255
+    if (w < 0)
+        w = 0;
+    if (b < 0)
+        b = 0;
+    if (r < 0)
+        r = 0;
+    if (g < 0)
+        g = 0;
+    if (w > 255)
+        w = 255;
+    if (b > 255)
+        b = 255;
+    if (r > 255)
+        r = 255;
+    if (g > 255)
+        g = 255;
+
     if (r != this->leds[RED]->get_pwm() ||
         g != this->leds[GREEN]->get_pwm() ||
         b != this->leds[BLUE]->get_pwm() ||

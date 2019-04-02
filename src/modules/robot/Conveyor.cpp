@@ -9,7 +9,7 @@
 #include "Gcode.h"
 #include "Module.h"
 #include "Kernel.h"
-#include "Timer.h" // mbed.h lib
+#include "Timer.h"    // mbed.h lib
 #include "wait_api.h" // mbed.h lib
 #include "Block.h"
 #include "Conveyor.h"
@@ -57,12 +57,11 @@
  * Thus, our two ringbuffers exist sharing the one ring of blocks, and we safely marshall used blocks from ISR context to IDLE context for safe cleanup.
  */
 
-
 Conveyor::Conveyor()
 {
     running = false;
     allow_fetch = false;
-    flush= false;
+    flush = false;
 }
 
 void Conveyor::on_module_loaded()
@@ -84,27 +83,33 @@ void Conveyor::start(uint8_t n)
     running = true;
 }
 
-void Conveyor::on_halt(void* argument)
+void Conveyor::on_halt(void *argument)
 {
-    if(argument == nullptr) {
+    if (argument == nullptr)
+    {
         flush_queue();
     }
 }
 
-void Conveyor::on_idle(void*)
+void Conveyor::on_idle(void *)
 {
-    if (running) {
+    if (running)
+    {
         check_queue();
     }
 
     // we can garbage collect the block queue here
-    if (queue.tail_i != queue.isr_tail_i) {
-        if (queue.is_empty()) {
+    if (queue.tail_i != queue.isr_tail_i)
+    {
+        if (queue.is_empty())
+        {
             __debugbreak();
-        } else {
+        }
+        else
+        {
             // Cleanly delete block
-            Block* block = queue.tail_ref();
-            block->debug();
+            Block *block = queue.tail_ref();
+            //block->debug();
             block->clear();
             queue.consume_tail();
         }
@@ -116,9 +121,12 @@ void Conveyor::on_idle(void*)
 // checks that all motors are no longer moving
 bool Conveyor::is_idle() const
 {
-    if(queue.is_empty()) {
-        for(auto &a : THEROBOT->actuators) {
-            if(a->is_moving()) return false;
+    if (queue.is_empty())
+    {
+        for (auto &a : THEROBOT->actuators)
+        {
+            if (a->is_moving())
+                return false;
         }
         return true;
     }
@@ -132,14 +140,17 @@ void Conveyor::wait_for_idle(bool wait_for_motors)
     // wait for the job queue to empty, this means cycling everything on the block queue into the job queue
     // forcing them to be jobs
     running = false; // stops on_idle calling check_queue
-    while (!queue.is_empty()) {
+    while (!queue.is_empty())
+    {
         check_queue(true); // forces queue to be made available to stepticker
         THEKERNEL->call_event(ON_IDLE, this);
     }
 
-    if(wait_for_motors) {
+    if (wait_for_motors)
+    {
         // now we wait for all motors to stop moving
-        while(!is_idle()) {
+        while (!is_idle())
+        {
             THEKERNEL->call_event(ON_IDLE, this);
         }
     }
@@ -154,12 +165,14 @@ void Conveyor::wait_for_idle(bool wait_for_motors)
 void Conveyor::queue_head_block()
 {
     // upstream caller will block on this until there is room in the queue
-    while (queue.is_full() && !THEKERNEL->is_halted()) {
+    while (queue.is_full() && !THEKERNEL->is_halted())
+    {
         //check_queue();
         THEKERNEL->call_event(ON_IDLE, this); // will call check_queue();
     }
 
-    if(THEKERNEL->is_halted()) {
+    if (THEKERNEL->is_halted())
+    {
         // we do not want to stick more stuff on the queue if we are in halt state
         // clear and release the block on the head
         queue.head_ref()->clear();
@@ -169,14 +182,15 @@ void Conveyor::queue_head_block()
     queue.produce_head();
 
     // not sure if this is the correct place but we need to turn on the motors if they were not already on
-    THEKERNEL->call_event(ON_ENABLE, (void*)1); // turn all enable pins on
+    THEKERNEL->call_event(ON_ENABLE, (void *)1); // turn all enable pins on
 }
 
 void Conveyor::check_queue(bool force)
 {
     static uint32_t last_time_check = us_ticker_read();
 
-    if(queue.is_empty()) {
+    if (queue.is_empty())
+    {
         allow_fetch = false;
         last_time_check = us_ticker_read(); // reset timeout
         return;
@@ -184,9 +198,11 @@ void Conveyor::check_queue(bool force)
 
     // if we have been waiting for more than the required waiting time and the queue is not empty, or the queue is full, then allow stepticker to get the tail
     // we do this to allow an idle system to pre load the queue a bit so the first few blocks run smoothly.
-    if(force || queue.is_full() || (us_ticker_read() - last_time_check) >= (queue_delay_time_ms * 1000)) {
+    if (force || queue.is_full() || (us_ticker_read() - last_time_check) >= (queue_delay_time_ms * 1000))
+    {
         last_time_check = us_ticker_read(); // reset timeout
-        if(!flush) allow_fetch = true;
+        if (!flush)
+            allow_fetch = true;
         return;
     }
 }
@@ -195,29 +211,35 @@ void Conveyor::check_queue(bool force)
 bool Conveyor::get_next_block(Block **block)
 {
     // mark entire queue for GC if flush flag is asserted
-    if (flush){
-        while (queue.isr_tail_i != queue.head_i) {
+    if (flush)
+    {
+        while (queue.isr_tail_i != queue.head_i)
+        {
             queue.isr_tail_i = queue.next(queue.isr_tail_i);
         }
     }
 
     // default the feerate to zero if there is no block available
-    this->current_feedrate= 0;
+    this->current_feedrate = 0;
 
-    if(THEKERNEL->is_halted() || queue.isr_tail_i == queue.head_i) return false; // we do not have anything to give
+    if (THEKERNEL->is_halted() || queue.isr_tail_i == queue.head_i)
+        return false; // we do not have anything to give
 
     // wait for queue to fill up, optimizes planning
-    if(!allow_fetch) return false;
+    if (!allow_fetch)
+        return false;
 
-    Block *b= queue.item_ref(queue.isr_tail_i);
+    Block *b = queue.item_ref(queue.isr_tail_i);
     // we cannot use this now if it is being updated
-    if(!b->locked) {
-        if(!b->is_ready) __debugbreak(); // should never happen
+    if (!b->locked)
+    {
+        if (!b->is_ready)
+            __debugbreak(); // should never happen
 
-        b->is_ticking= true;
-        b->recalculate_flag= false;
-        this->current_feedrate= b->nominal_speed;
-        *block= b;
+        b->is_ticking = true;
+        b->recalculate_flag = false;
+        this->current_feedrate = b->nominal_speed;
+        *block = b;
         return true;
     }
 
@@ -228,7 +250,7 @@ bool Conveyor::get_next_block(Block **block)
 void Conveyor::block_finished()
 {
     // we increment the isr_tail_i so we can get the next block
-    queue.isr_tail_i= queue.next(queue.isr_tail_i);
+    queue.isr_tail_i = queue.next(queue.isr_tail_i);
 }
 
 /*
@@ -241,20 +263,21 @@ void Conveyor::block_finished()
 void Conveyor::flush_queue()
 {
     allow_fetch = false;
-    flush= true;
+    flush = true;
 
     // TODO force deceleration of last block
 
     // now wait until the block queue has been flushed
     wait_for_idle(false);
 
-    flush= false;
+    flush = false;
 }
 
 // Debug function
 void Conveyor::dump_queue()
 {
-    for (unsigned int index = queue.tail_i, i = 0; true; index = queue.next(index), i++ ) {
+    for (unsigned int index = queue.tail_i, i = 0; true; index = queue.next(index), i++)
+    {
         THEKERNEL->streams->printf("block %03d > ", i);
         queue.item_ref(index)->debug();
 

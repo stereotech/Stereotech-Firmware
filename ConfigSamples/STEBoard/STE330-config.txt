@@ -1,9 +1,9 @@
-#Smoothieboard configuration file, see http://smoothieware.org/configuring-smoothie
+﻿#Smoothieboard configuration file, see http://smoothieware.org/configuring-smoothie
 #NOTE Lines must not exceed 132 characters, and '#' characters mean what follows is ignored
 # Robot module configurations : general handling of movement G-codes and slicing into moves
-planner_queue_size 16
+planner_queue_size 32
 
-arm_solution 								corexy
+arm_solution                                 corexy
 
 # Basic motion configuration
 default_feed_rate                            4000             # Default speed (mm/minute) for G1/G2/G3 moves
@@ -19,21 +19,21 @@ mm_max_arc_error                             0.01             # The maximum erro
 alpha_steps_per_mm                           640               # Steps per mm for alpha ( X ) stepper
 beta_steps_per_mm                            640               # Steps per mm for beta ( Y ) stepper
 gamma_steps_per_mm                           800             # Steps per mm for gamma ( Z ) stepper
-delta_steps_per_mm						     26.67
-epsilon_steps_per_mm						 26.67
-zeta_steps_per_mm							 80
+delta_steps_per_mm                           26.67
+epsilon_steps_per_mm                         26.67
+zeta_steps_per_mm                            80
 
 # Planner module configuration : Look-ahead and acceleration configuration
 # See http://smoothieware.org/motion-control
-acceleration                                 3000             # Acceleration in mm/second/second.
-#z_acceleration                              500              # Acceleration for Z only moves in mm/s^2, 0 uses acceleration which is the default. DO NOT SET ON A DELTA
-junction_deviation                           0.05             # See http://smoothieware.org/motion-control#junction-deviation
-#z_junction_deviation                        0.0              # For Z only moves, -1 uses junction_deviation, zero disables junction_deviation on z moves DO NOT SET ON A DELTA
+acceleration                                 1000             # Acceleration in mm/second/second.
+z_acceleration                               200              # Acceleration for Z only moves in mm/s^2, 0 uses acceleration which is the default. DO NOT SET ON A DELTA
+junction_deviation                           1             # See http://smoothieware.org/motion-control#junction-deviation
+z_junction_deviation                         0.0              # For Z only moves, -1 uses junction_deviation, zero disables junction_deviation on z moves DO NOT SET ON A DELTA
 
 # Cartesian axis speed limits
-x_axis_max_speed                             30000            # Maximum speed in mm/min
-y_axis_max_speed                             30000            # Maximum speed in mm/min
-z_axis_max_speed                             300              # Maximum speed in mm/min
+x_axis_max_speed                             12000            # Maximum speed in mm/min
+y_axis_max_speed                             12000            # Maximum speed in mm/min
+z_axis_max_speed                             500              # Maximum speed in mm/min
 
 # Stepper module configuration 
 # Pins are defined as  ports, and pin numbers, appending "!" to the number will invert a pin
@@ -41,17 +41,17 @@ z_axis_max_speed                             300              # Maximum speed in
 alpha_step_pin                               2.0              # Pin for alpha stepper step signal
 alpha_dir_pin                                0.5              # Pin for alpha stepper direction, add '!' to reverse direction
 alpha_en_pin                                 0.4              # Pin for alpha enable pin
-alpha_max_rate                               30000.0          # Maximum rate in mm/min
+alpha_max_rate                               12000.0          # Maximum rate in mm/min
 
 beta_step_pin                                2.1              # Pin for beta stepper step signal
 beta_dir_pin                                 0.11             # Pin for beta stepper direction, add '!' to reverse direction
 beta_en_pin                                  0.10             # Pin for beta enable
-beta_max_rate                                30000.0          # Maxmimum rate in mm/min
+beta_max_rate                                12000.0          # Maxmimum rate in mm/min
 
 gamma_step_pin                               2.2              # Pin for gamma stepper step signal
 gamma_dir_pin                                0.20!             # Pin for gamma stepper direction, add '!' to reverse direction
 gamma_en_pin                                 0.19             # Pin for gamma enable
-gamma_max_rate                               300.0            # Maximum rate in mm/min
+gamma_max_rate                               500.0            # Maximum rate in mm/min
 
 delta_step_pin                               1.15             # Pin for delta stepper step signal
 delta_dir_pin                                1.14             # Pin for delta stepper direction, add '!' to reverse direction
@@ -107,19 +107,19 @@ temperature_control.hotend.thermistor        EPCOS100K        # See http://smoot
 temperature_control.hotend.set_m_code        104              # M-code to set the temperature for this module
 temperature_control.hotend.set_and_wait_m_code 109            # M-code to set-and-wait for this module
 temperature_control.hotend.designator        T                # Designator letter for this module
-temperature_control.hotend.max_pwm 			 255
+temperature_control.hotend.max_pwm           170
 
 # Safety control is enabled by default and can be overidden here, the values show the defaults
 # See http://smoothieware.org/temperaturecontrol#runaway
-#temperature_control.hotend.runaway_heating_timeout      900  # How long it can take to heat up, max is 2040 seconds.
-#temperature_control.hotend.runaway_cooling_timeout        0  # How long it can take to cool down if temp is set lower, max is 2040 seconds
-#temperature_control.hotend.runaway_range                20   # How far from the set temperature it can wander, max setting is 63°C
+temperature_control.hotend.runaway_heating_timeout      2040  # How long it can take to heat up, max is 2040 seconds.
+temperature_control.hotend.runaway_cooling_timeout      2040  # How long it can take to cool down if temp is set lower, max is 2040 seconds
+temperature_control.hotend.runaway_range                50   # How far from the set temperature it can wander, max setting is 63°C
 
 # PID configuration 
 # See http://smoothieware.org/temperaturecontrol#pid
-#temperature_control.hotend.p_factor         13.7             # P ( proportional ) factor
-#temperature_control.hotend.i_factor         0.097            # I ( integral ) factor
-#temperature_control.hotend.d_factor         24               # D ( derivative ) factor
+temperature_control.hotend.p_factor         17.2             # P ( proportional ) factor
+temperature_control.hotend.i_factor         0.827            # I ( integral ) factor
+temperature_control.hotend.d_factor         89               # D ( derivative ) factor
 
 # Second hotend configuration
 temperature_control.hotend2.enable            true           # Whether to activate this ( "hotend" ) module at all.
@@ -130,20 +130,36 @@ temperature_control.hotend2.thermistor        EPCOS100K      # See http://smooth
 temperature_control.hotend2.set_m_code        104            # M-code to set the temperature for this module
 temperature_control.hotend2.set_and_wait_m_code 109          # M-code to set-and-wait for this module
 temperature_control.hotend2.designator        T1             # Designator letter for this module
-temperature_control.hotend2.max_pwm           255
+temperature_control.hotend2.max_pwm           170
 
-#temperature_control.hotend2.p_factor          13.7           # P ( proportional ) factor
-#temperature_control.hotend2.i_factor          0.097          # I ( integral ) factor
-#temperature_control.hotend2.d_factor          24             # D ( derivative ) factor
+temperature_control.hotend2.p_factor          17.1           # P ( proportional ) factor
+temperature_control.hotend2.i_factor          0.827          # I ( integral ) factor
+temperature_control.hotend2.d_factor          89             # D ( derivative ) factor
 
 temperature_control.bed.enable               true             # Whether to activate this ( "hotend" ) module at all.
 temperature_control.bed.thermistor_pin       0.24             # Pin for the thermistor to read
-temperature_control.bed.heater_pin           2.6              # Pin that controls the heater
+temperature_control.bed.heater_pin           4.28              # Pin that controls the heater
 temperature_control.bed.thermistor           EPCOS100K    # See http://smoothieware.org/temperaturecontrol#thermistor
 temperature_control.bed.set_m_code           140              # M-code to set the temperature for this module
 temperature_control.bed.set_and_wait_m_code  190              # M-code to set-and-wait for this module
 temperature_control.bed.designator           B                # Designator letter for this module
-temperature_control.bed.max_pwm              255
+temperature_control.bed.max_pwm              128
+
+temperature_control.bed.p_factor          182.2           # P ( proportional ) factor
+temperature_control.bed.i_factor          8.966          # I ( integral ) factor
+temperature_control.bed.d_factor          926             # D ( derivative ) factor
+
+#temperature_control.chamber.enable               true             # Whether to activate this ( "hotend" ) module at all.
+#temperature_control.chamber.thermistor_pin       0.26             # Pin for the thermistor to read
+#temperature_control.chamber.heater_pin           1.9              # Pin that controls the heater
+#temperature_control.chamber.thermistor           EPCOS100K    # See http://smoothieware.org/temperaturecontrol#thermistor
+#temperature_control.chamber.set_m_code           140              # M-code to set the temperature for this module
+#temperature_control.chamber.set_and_wait_m_code  190              # M-code to set-and-wait for this module
+#temperature_control.chamber.designator           C                # Designator letter for this module
+#temperature_control.chamber.max_pwm              255
+#temperature_control.chamber.p_factor          182.2           # P ( proportional ) factor
+#temperature_control.chamber.i_factor          8.966          # I ( integral ) factor
+#temperature_control.chamber.d_factor          926             # D ( derivative ) factor
 
 ## Switch modules
 # See http://smoothieware.org/switch
@@ -160,34 +176,75 @@ switch.heatsinkfan.max_pwm                           255              # Set max 
 switch.chamberfan.enable                            true             # Enable this module
 switch.chamberfan.input_on_command                  M106             # Command that will turn this switch on
 switch.chamberfan.input_off_command                 M107             # Command that will turn this switch off
-switch.chamberfan.subcode                            2
+#switch.chamberfan.subcode                            2
 switch.chamberfan.output_pin                        2.5            # Pin this module controls
 switch.chamberfan.output_type                       pwm              # PWM output settable with S parameter in the input_on_comand
-switch.chamberfan.max_pwm                           255              # Set max pwm for the pin default is 255
+switch.chamberfan.max_pwm                           128              # Set max pwm for the pin default is 255
 
-switch.heaterfan.enable                            true             # Enable this module
-switch.heaterfan.input_on_command                  M106             # Command that will turn this switch on
-switch.heaterfan.input_off_command                 M107             # Command that will turn this switch off
-switch.heaterfan.subcode                            3
-switch.heaterfan.output_pin                        3.26            # Pin this module controls
-switch.heaterfan.output_type                       pwm              # PWM output settable with S parameter in the input_on_comand
-switch.heaterfan.max_pwm                           255              # Set max pwm for the pin default is 255
+switch.bottomfan.enable                            true             # Enable this module
+switch.bottomfan.input_on_command                  M106             # Command that will turn this switch on
+switch.bottomfan.input_off_command                 M107             # Command that will turn this switch off
+switch.bottomfan.subcode                            3
+switch.bottomfan.output_pin                        2.6            # Pin this module controls
+switch.bottomfan.output_type                       pwm              # PWM output settable with S parameter in the input_on_comand
+switch.bottomfan.max_pwm                           255              # Set max pwm for the pin default is 255
 
-switch.fan.enable                            false             # Enable this module
+switch.fan.enable                            true 		# Enable this module
 switch.fan.input_on_command                  M106             # Command that will turn this switch on
 switch.fan.input_off_command                 M107             # Command that will turn this switch off
-switch.fan.output_pin                        1.20!            # Pin this module controls
+switch.fan.output_pin                        1.20            # Pin this module controls
 switch.fan.output_type                       pwm              # PWM output settable with S parameter in the input_on_comand
 switch.fan.max_pwm                           255              # Set max pwm for the pin default is 255
+
+switch.chamberheater.enable                            true 		# Enable this module
+switch.chamberheater.input_on_command                  M106             # Command that will turn this switch on
+switch.chamberheater.input_off_command                 M107             # Command that will turn this switch off
+switch.chamberheater.subcode                            4
+switch.chamberheater.output_pin                        1.9            # Pin this module controls
+switch.chamberheater.output_type                       pwm              # PWM output settable with S parameter in the input_on_comand
+switch.chamberheater.max_pwm                           255
+
+switch.chamberheaterfan.enable                            true             # Enable this module
+switch.chamberheaterfan.input_on_command                  M106             # Command that will turn this switch on
+switch.chamberheaterfan.input_off_command                 M107             # Command that will turn this switch off
+switch.chamberheaterfan.subcode                            5
+switch.chamberheaterfan.output_pin                        3.26            # Pin this module controls
+switch.chamberheaterfan.output_type                       pwm              # PWM output settable with S parameter in the input_on_comand
+switch.chamberheaterfan.max_pwm                           255              # Set max pwm for the pin default is 255
 
 ## Temperatureswitch
 temperatureswitch.heatsink.enable              true            #
 temperatureswitch.heatsink.designator          T               # first character of the temperature control designator to use as the temperature sensor to monitor
 temperatureswitch.heatsink.switch              heatsinkfan     # select which switch to use, matches the name of the defined switch
 temperatureswitch.heatsink.threshold_temp      50.0            # temperature to turn on (if rising) or off the switch
-temperatureswitch.heatsink.heatup_poll         15              # poll heatup at 15 sec intervals
+temperatureswitch.heatsink.heatup_poll         5              # poll heatup at 15 sec intervals
 temperatureswitch.heatsink.cooldown_poll       60              # poll cooldown at 60 sec intervals
-temperatureswitch.heatsink.inverted              true          #
+temperatureswitch.heatsink.inverted              false          #
+
+## Temperatureswitch
+temperatureswitch.chamberheatercontrol.enable              true            #
+temperatureswitch.chamberheatercontrol.designator          B               # first character of the temperature control designator to use as the temperature sensor to monitor
+temperatureswitch.chamberheatercontrol.switch              chamberheater     # select which switch to use, matches the name of the defined switch
+temperatureswitch.chamberheatercontrol.threshold_temp      75.0            # temperature to turn on (if rising) or off the switch
+temperatureswitch.chamberheatercontrol.heatup_poll         10              # poll heatup at 15 sec intervals
+temperatureswitch.chamberheatercontrol.cooldown_poll       10              # poll cooldown at 60 sec intervals
+temperatureswitch.chamberheatercontrol.inverted              false          #
+
+temperatureswitch.chamberheaterfancontrol.enable              true            #
+temperatureswitch.chamberheaterfancontrol.designator          B               # first character of the temperature control designator to use as the temperature sensor to monitor
+temperatureswitch.chamberheaterfancontrol.switch              chamberheaterfan     # select which switch to use, matches the name of the defined switch
+temperatureswitch.chamberheaterfancontrol.threshold_temp      70.0            # temperature to turn on (if rising) or off the switch
+temperatureswitch.chamberheaterfancontrol.heatup_poll         5              # poll heatup at 15 sec intervals
+temperatureswitch.chamberheaterfancontrol.cooldown_poll       100              # poll cooldown at 60 sec intervals
+temperatureswitch.chamberheaterfancontrol.inverted              false          #
+
+temperatureswitch.bottom.enable              true            #
+temperatureswitch.bottom.designator          T               # first character of the temperature control designator to use as the temperature sensor to monitor
+temperatureswitch.bottom.switch              bottomfan     # select which switch to use, matches the name of the defined switch
+temperatureswitch.bottom.threshold_temp      40.0            # temperature to turn on (if rising) or off the switch
+temperatureswitch.bottom.heatup_poll         15              # poll heatup at 15 sec intervals
+temperatureswitch.bottom.cooldown_poll       60              # poll cooldown at 60 sec intervals
+temperatureswitch.bottom.inverted              false          #
 
 # Delete the above endstop section and uncomment next line and copy and edit Snippets/abc-endstop.config file to enable endstops for ABC axis
 #include abc-endstop.config
@@ -214,15 +271,15 @@ endstop.maxy.fast_rate                       50               # fast homing rate
 endstop.maxy.slow_rate                       25               # slow homing rate in mm/sec
 endstop.maxy.retract                         5                # bounce off endstop in mm
 
-endstop.minz.enable                          true             # enable an endstop
-endstop.minz.pin                             1.28             # pin
-endstop.minz.homing_direction                home_to_min      # direction it moves to the endstop
-endstop.minz.homing_position                 0                # the cartesian coordinate this is set to when it homes
-endstop.minz.axis                            Z                # the axis designator
-endstop.minz.max_travel                      350              # the maximum travel in mm before it times out
-endstop.minz.fast_rate                       15               # fast homing rate in mm/sec
-endstop.minz.slow_rate                       2                # slow homing rate in mm/sec
-endstop.minz.retract                         5                # bounce off endstop in mm
+endstop.maxz.enable                          true             # enable an endstop
+endstop.maxz.pin                             1.29!             # pin
+endstop.maxz.homing_direction                home_to_max      # direction it moves to the endstop
+endstop.maxz.homing_position                 300                # the cartesian coordinate this is set to when it homes
+endstop.maxz.axis                            Z                # the axis designator
+endstop.maxz.max_travel                      350              # the maximum travel in mm before it times out
+endstop.maxz.fast_rate                       15               # fast homing rate in mm/sec
+endstop.maxz.slow_rate                       2                # slow homing rate in mm/sec
+endstop.maxz.retract                         5                # bounce off endstop in mm
 
 # optional enable limit switches, actions will stop if any enabled limit switch is triggered
 #endstop.minx.limit_enable                   false            # set to true to enable the limit on this endstop
@@ -240,12 +297,21 @@ endstop.maxa.fast_rate                       30               # fast homing rate
 endstop.maxa.slow_rate                       2                # slow homing rate in mm/sec
 endstop.maxa.retract                         5                # bounce off endstop in mm
 
+soft_endstop.enable         true         # Enable soft endstops
+soft_endstop.x_min          -20            # Minimum X position
+soft_endstop.x_max          320          # Maximum X position
+soft_endstop.y_min          -20            # Minimum Y position
+soft_endstop.y_max          320          # Maximum Y position
+soft_endstop.z_min          -20            # Minimum Z position
+soft_endstop.z_max          320          # Maximum Z position
+soft_endstop.halt           false         # Whether to issue a HALT state when hitting a soft endstop (if false, will just ignore commands that would exceed the limit)
+
 # type of machine
 corexy_homing                               true            # set to true if homing on a hbot or corexy
 
 # optional order in which axis will home, default is they all home at the same time,
 # if this is set it will force each axis to home one at a time in the specified order
-homing_order                                 XYZ              # x axis followed by y then z last
+homing_order                                  ZYX              # x axis followed by y then z last
 #move_to_origin_after_home                    true            # move XY to 0,0 after homing
 #endstop_debounce_count                       100              # uncomment if you get noise on your endstops, default is 100
 #endstop_debounce_ms                          1                # uncomment if you get noise on your endstops, default is 1 millisecond debounce

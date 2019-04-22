@@ -141,6 +141,7 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
         //Move to the first point
         std::tie(x, y, z) = probe_points[0];
         zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
+        stream->printf("Moving to probe point 1: x%1.3f y%1.3f z%1.3f\n", x, y, z);
     }
     else if (step == 1)
     {
@@ -148,35 +149,47 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
         float position[3];
         THEROBOT->get_axis_position(position);
         actual_probe_points[0] = std::make_tuple(position[0], position[1], position[2]);
-
+        stream->printf("Probe point 1 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
         //Move to the second point
         float x, y, z;
         std::tie(x, y, z) = probe_points[1];
         zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
+        stream->printf("Moving to probe point 2: x%1.3f y%1.3f z%1.3f\n", x, y, z);
     }
     else if (step == 2)
     {
-        setAAxisZero();
+        setAAxisZero(stream);
+    }
+    else if (step == 3)
+    {
+        setCAxisRegardingXY(stream);
+    }
+    else if (step == 4)
+    {
+        preLinearCorrection(stream);
     }
 }
 
-void FiveAxisStrategy::setAAxisZero()
+void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
 {
     float a_offset = 0;
+    //Save second point
     float position[3];
     THEROBOT->get_axis_position(position);
     actual_probe_points[1] = std::make_tuple(position[0], position[1], position[2]);
+    stream->printf("Probe point 2 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
+
     float z1, z2;
     z1 = std::get<2>(actual_probe_points[0]);
     z2 = std::get<2>(actual_probe_points[1]);
-    a_offset = asin((z2 - z1) / (2 * (this->big_part_length + this.small_part_length)));
+    a_offset = asinf((z2 - z1) / (2 * (this->big_part_length + this.small_part_length)));
 
-#define CMDLEN 128
-    char *cmd = new char[CMDLEN];
+    char *cmd = new char[128];
     if (!isnan(a_offset))
     {
         size_t n = strlen(cmd);
         snprintf(&cmd[n], CMDLEN - n, "M206 A%1.3f", a_offset);
+        stream->printf("A axis offset is:%1.3f", a_offset);
         Gcode offset(cmd, &(StreamOuput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
     }
@@ -185,6 +198,78 @@ void FiveAxisStrategy::setAAxisZero()
     zprobe->coordinated_move(NAN, NAN, 20, zprobe->getFastFeedrate(), true);
     Gcode rotateA("G0 A0", &(StreamOuput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &a_offset);
+}
+
+void FiveAxisStrategy::setCAxisRegardingXY(StreamOutput *stream)
+{
+    float c_offset = 0;
+    float y1, y2, x1, x2, z1, z2;
+    std::tie(x1, y1, z1) = actual_probe_points[0];
+    std::tie(x2, y2, z2) = actual_probe_points[1];
+    c_offset = atan2f((y2 - y1) / (x2 - x1));
+
+    char *cmd = new char[128];
+    if (!isnan(c_offset))
+    {
+        size_t n = strlen(cmd);
+        snprintf(&cmd[n], CMDLEN - n, "G0 C%1.3f", c_offset);
+        stream->printf("C axis offset is:%1.3f", c_offset);
+        Gcode offset(cmd, &(StreamOuput::NullStream));
+        THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
+    }
+    delete[] cmd;
+
+    //Move to the third point
+    float x, y, z;
+    std::tie(x, y, z) = probe_points[2];
+    zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
+    stream->printf("Moving to probe point 3: x%1.3f y%1.3f z%1.3f\n", x, y, z);
+}
+
+void FiveAxisStrategy::preLinearCorrection(StreamOutput *stream)
+{
+    //Save third point
+    float position[3];
+    THEROBOT->get_axis_position(position);
+    actual_probe_points[2] = std::make_tuple(position[0], position[1], position[2]);
+    stream->printf("Probe point 3 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
+
+    //Move to the fourth point
+    float x, y, z;
+    std::tie(x, y, z) = probe_points[3];
+    zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
+    stream->printf("Moving to probe point 4: x%1.3f y%1.3f z%1.3f\n", x, y, z);
+}
+
+void FiveAxisStrategy::setBAxisCorrection(StreamOutput *stream)
+{
+    //Save fourth point
+    float position[3];
+    THEROBOT->get_axis_position(position);
+    actual_probe_points[3] = std::make_tuple(position[0], position[1], position[2]);
+    stream->printf("Probe point 4 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
+
+    float b_correction = 0;
+    float z3, z4;
+    z3 = std::get<2>(actual_probe_points[2]);
+    z4 = std::get<2>(actual_probe_points[3]);
+    b_correction = asinf((z4 - z3) / ((this->big_part_length + this.small_part_length)));
+    stream->printf("B axis angle: b%1.3f", b_correction);
+
+    float x0, z0, x3;
+    x3 = std : get<0>(actual_probe_points[2]);
+    x0 = x3 + (this->big_part_length + this.small_part_length) * sinf(b_correction);
+    z0 = z3 - (this->big_part_length + this.small_part_length) * sinf(b_correction);
+    stream->printf("Real A axis rotation point: x%1.3f y%1.3f z%1.3f", x0, position[1], z0);
+
+    auto l1 = [=](float x, float z) {
+        return sqrtf((x - x0) * (x - x0) + (z - z0) * (z - z0));
+    };
+    auto p = [=](float x, float z) {
+        return 4 * ((x + x0) * (x + x0) + (z + z0) * (z + z0));
+    };
+    auto q = [=](float x, float z) {};
+    float dddd = p();
 }
 
 void FiveAxisStrategy::home()

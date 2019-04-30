@@ -238,7 +238,7 @@ void FiveAxisStrategy::reset_calibr()
 {
     for (size_t i = 0; i < 19; i++)
     {
-        this->calbration[i] = 0;
+        calibration[i] = 0;
     }
 }
 

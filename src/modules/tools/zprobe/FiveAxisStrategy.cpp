@@ -1,4 +1,5 @@
 #include "FiveAxisStrategy.h"
+
 #include "Kernel.h"
 #include "Config.h"
 #include "Robot.h"
@@ -10,13 +11,15 @@
 #include "PublicData.h"
 #include "Conveyor.h"
 #include "ZProbe.h"
-#include "Plane3D.h"
 #include "nuts_bolts.h"
+#include "utils.h"
+#include "platform_memory.h"
 
 #include <string>
 #include <algorithm>
 #include <cstdlib>
 #include <cmath>
+#include <fastmath.h>
 
 #define probe_point_1_checksum CHECKSUM("point1")
 #define probe_point_2_checksum CHECKSUM("point2")
@@ -98,8 +101,8 @@ bool FiveAxisStrategy::handleConfig()
     if (!p10.empty())
         probe_points[9] = parseXYZ(p10.c_str());
 
-    this->big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length)->by_default(10F)->as_number();
-    this->small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length)->by_default(10F)->as_number();
+    this->big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length)->by_default(10.0F)->as_number();
+    this->small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length)->by_default(10.0F)->as_number();
     this->home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, home_checksum)->by_default(true)->as_bool();
 
     for (int i = 0; i < 10; i++)
@@ -173,7 +176,8 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
         }
         else if (gcode->m == 500 || gcode->m == 503)
         {
-            gcode->stream->printf(";Load saved calibration\nM375\n") return true;
+            gcode->stream->printf(";Load saved calibration\nM375\n");
+            return true;
         }
         else if (gcode->m == 1005)
         {
@@ -234,7 +238,7 @@ void FiveAxisStrategy::reset_calibr()
 {
     for (size_t i = 0; i < 19; i++)
     {
-        calbration[i] = 0;
+        this->calbration[i] = 0;
     }
 }
 
@@ -255,14 +259,15 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
     if (step == 0)
     {
         THEKERNEL->conveyor->wait_for_idle();
-        setAdjustFunction(false);
+        setFirstAdjustFunction(false);
 
         if (this->home)
         {
-            zprobe->makeHome();
+            zprobe->home();
         }
 
         //Move to the first point
+        float x, y, z;
         std::tie(x, y, z) = probe_points[0];
         zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
         stream->printf("Moving to probe point 1: x%1.3f y%1.3f z%1.3f\n", x, y, z);
@@ -338,13 +343,13 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float z1, z2;
     z1 = std::get<2>(actual_probe_points[0]);
     z2 = std::get<2>(actual_probe_points[1]);
-    a_offset = asinf((z2 - z1) / (2 * (this->big_part_length + this.small_part_length)));
+    a_offset = asinf((z2 - z1) / (2 * (this->big_part_length + this->small_part_length)));
 
     char *cmd = new char[128];
     if (!isnan(a_offset))
     {
         size_t n = strlen(cmd);
-        snprintf(&cmd[n], CMDLEN - n, "M206 A%1.3f", a_offset);
+        snprintf(&cmd[n], 128 - n, "M206 A%1.3f", a_offset);
         stream->printf("A axis offset is:%1.3f", a_offset);
         Gcode offset(cmd, &(StreamOuput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
@@ -362,13 +367,13 @@ void FiveAxisStrategy::setCAxisRegardingXY(StreamOutput *stream)
     float y1, y2, x1, x2, z1, z2;
     std::tie(x1, y1, z1) = actual_probe_points[0];
     std::tie(x2, y2, z2) = actual_probe_points[1];
-    c_offset = atan2f((y2 - y1) / (x2 - x1));
+    c_offset = atan2f((y2 - y1), (x2 - x1));
 
     char *cmd = new char[128];
     if (!isnan(c_offset))
     {
         size_t n = strlen(cmd);
-        snprintf(&cmd[n], CMDLEN - n, "G0 C%1.3f", c_offset);
+        snprintf(&cmd[n], 128 - n, "G0 C%1.3f", c_offset);
         stream->printf("C axis offset is:%1.3f", c_offset);
         Gcode offset(cmd, &(StreamOuput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
@@ -409,13 +414,13 @@ void FiveAxisStrategy::setBAxisCorrection(StreamOutput *stream)
     float z3, z4;
     z3 = std::get<2>(actual_probe_points[2]);
     z4 = std::get<2>(actual_probe_points[3]);
-    calibration[B] = asinf((z4 - z3) / ((this->big_part_length + this.small_part_length)));
+    calibration[B] = asinf((z4 - z3) / ((this->big_part_length + this->small_part_length)));
     stream->printf("B axis angle: b%1.3f", calibration[B]);
     calibration[T] = (sinf(calibration[B]) * sinf(calibration[B])) / (cosf(calibration[B] / 2) * cosf(calibration[B] / 2));
     float x3;
     x3 = std : get<0>(actual_probe_points[2]);
-    calibration[X0] = x3 + (this->big_part_length + this.small_part_length) * sinf(calibration[B]);
-    calibration[Z0] = z3 - (this->big_part_length + this.small_part_length) * sinf(calibration[B]);
+    calibration[X0] = x3 + (this->big_part_length + this->small_part_length) * sinf(calibration[B]);
+    calibration[Z0] = z3 - (this->big_part_length + this->small_part_length) * sinf(calibration[B]);
     stream->printf("Real A axis rotation point: x%1.3f y%1.3f z%1.3f", calibration[X0], position[1], calibration[Z0]);
     setFirstAdjustFunction(true);
 

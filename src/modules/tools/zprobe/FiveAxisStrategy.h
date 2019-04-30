@@ -3,13 +3,18 @@
 
 #include "LevelingStrategy.h"
 
+#include <tuple>
+
 #define five_axis_strategy_checksum CHECKSUM("five-axis")
+
+class StreamOutput;
+class Gcode;
 
 class FiveAxisStrategy : public LevelingStrategy
 {
 private:
   std::tuple<float, float, float> parseXYZ(const char *str);
-  void home();
+  void makeHome();
   void gotoStep(uint8_t step, StreamOutput *stream);
   void setAAxisZero(StreamOutput *stream);
   void setCAxisRegardingXY(StreamOutput *stream);

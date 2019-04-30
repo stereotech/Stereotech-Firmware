@@ -58,13 +58,13 @@ FiveAxisStrategy::FiveAxisStrategy(ZProbe *zprobe) : LevelingStrategy(zprobe)
 {
     for (size_t i = 0; i < 10; i++)
     {
-        probe_points[i] = std::make_tuple(NAN, NAN, NAN);
+        this->probe_points[i] = std::make_tuple(NAN, NAN, NAN);
     }
 }
 
 FiveAxisStrategy::~FiveAxisStrategy() {}
 
-FiveAxisStrategy::handleConfig()
+bool FiveAxisStrategy::handleConfig()
 {
     std::string p1 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_1_checksum)->by_default("")->as_string();
     std::string p2 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_2_checksum)->by_default("")->as_string();
@@ -140,7 +140,7 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
         }
         if (gcode->m == 370 || gcode->m == 561)
         {
-            setAdjustFunction(false);
+            setFirstAdjustFunction(false);
             reset_calibr();
             gcode->stream->printf("calibration cleared and disabled\n");
             return true;
@@ -259,7 +259,7 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
 
         if (this->home)
         {
-            zprobe->home();
+            zprobe->makeHome();
         }
 
         //Move to the first point
@@ -671,7 +671,7 @@ float FiveAxisStrategy::helperDzeta(float x, float z)
     return sqrtf(helperL1(x, z) * helperL1(x, z) - helperXi(x, z) * helperXi(x, z));
 }
 
-void FiveAxisStrategy::home()
+void FiveAxisStrategy::makeHome()
 {
     Gcode gc("G28", &(StreamOuput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &gc);

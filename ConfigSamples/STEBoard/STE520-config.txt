@@ -244,12 +244,12 @@ endstop.maxz.retract                         5                # bounce off endst
 #endstop.minz.limit_enable                   false            # set to true to enable the limit on this endstop
 
 # OPTIONAL uncomment for homing the A axis to min
-endstop.maxa.enable                          false             # enable an endstop
+endstop.maxa.enable                          true             # enable an endstop
 endstop.maxa.pin                             1.22!             # pin
 endstop.maxa.homing_direction                home_to_max      # direction it moves to the endstop
 endstop.maxa.homing_position                 90               # the cartesian coordinate this is set to when it homes
 endstop.maxa.axis                            A                # the axis designator
-endstop.maxa.max_travel                      120              # the maximum travel in mm before it times out
+endstop.maxa.max_travel                      200              # the maximum travel in mm before it times out
 endstop.maxa.fast_rate                       30               # fast homing rate in mm/sec
 endstop.maxa.slow_rate                       2                # slow homing rate in mm/sec
 endstop.maxa.retract                         5                # bounce off endstop in mm
@@ -268,7 +268,7 @@ corexy_homing                               true            # set to true if hom
 
 # optional order in which axis will home, default is they all home at the same time,
 # if this is set it will force each axis to home one at a time in the specified order
-homing_order                                  ZYX              # x axis followed by y then z last
+homing_order                                  AZYX              # x axis followed by y then z last
 #move_to_origin_after_home                    true            # move XY to 0,0 after homing
 #endstop_debounce_count                       100              # uncomment if you get noise on your endstops, default is 100
 #endstop_debounce_ms                          1                # uncomment if you get noise on your endstops, default is 1 millisecond debounce

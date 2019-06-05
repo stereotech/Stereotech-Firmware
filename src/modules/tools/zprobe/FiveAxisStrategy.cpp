@@ -266,6 +266,9 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
             zprobe->home();
         }
 
+        Gcode rotateA("G0 A0", &(StreamOutput::NullStream));
+        THEKERNEL->call_event(ON_GCODE_RECEIVED, &rotateA);
+
         //Move to the first point
         float x, y, z;
         std::tie(x, y, z) = probe_points[0];
@@ -343,14 +346,15 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float z1, z2;
     z1 = std::get<2>(actual_probe_points[0]);
     z2 = std::get<2>(actual_probe_points[1]);
+    //TODO: to degrees
     a_offset = asinf((z2 - z1) / (2 * (this->big_part_length + this->small_part_length)));
 
     char *cmd = new char[128];
     if (!isnan(a_offset))
     {
         size_t n = strlen(cmd);
-        snprintf(&cmd[n], 128 - n, "M206 A%1.3f", a_offset);
-        stream->printf("A axis offset is:%1.3f", a_offset);
+        snprintf(&cmd[n], 128 - n, "M206 A%1.3f", -a_offset);
+        stream->printf("A axis offset is:%1.3f", -a_offset);
         Gcode offset(cmd, &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
     }

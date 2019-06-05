@@ -208,7 +208,7 @@ bool USBSerial::USBEvent_EPOut(uint8_t bEP, uint8_t bEPStatus)
             continue;
         }
 
-        if(THEKERNEL->is_grbl_mode() || THEKERNEL->is_feed_hold_enabled()) {
+        if(THEKERNEL->is_feed_hold_enabled()) {
             if(c[i] == '!') { // safe pause
                 THEKERNEL->set_feed_hold(true);
                 continue;
@@ -315,6 +315,9 @@ void USBSerial::on_main_loop(void *argument)
             attached = true;
             THEKERNEL->streams->append_stream(this);
             puts("Smoothie\r\nok\r\n");
+            if(THEKERNEL->is_bad_mcu()) {
+                puts("WARNING: This is not a sanctioned board and may be unreliable and even dangerous. This MCU is deprecated, and cannot guarantee proper function\n");
+            }
         } else {
             attached = false;
             THEKERNEL->streams->remove_stream(this);

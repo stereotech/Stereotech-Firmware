@@ -86,8 +86,8 @@ try_again:
         //Get linenumber
         if ( first_char == 'N' ) {
             Gcode full_line = Gcode(possible_command, new_message.stream, false);
-            ln = (int) full_line.get_value('N');
-            int chksum = (int) full_line.get_value('*');
+            ln = (int) full_line.get_int('N');
+            int chksum = (int) full_line.get_int('*');
 
             //Catch message if it is M110: Set Current Line Number
             if ( full_line.has_m ) {
@@ -284,6 +284,9 @@ try_again:
                                 new_message.stream->printf(", X-MSD:1");
                                 #endif
 
+                                if(THEKERNEL->is_bad_mcu()) {
+                                    new_message.stream->printf(", X-WARNING:This is not a sanctioned board and may be unreliable and even dangerous. This MCU is deprecated, and cannot guarantee proper function\n");
+                                }
                                 new_message.stream->printf("\nok\n");
                                 return;
                             }
@@ -468,7 +471,13 @@ try_again:
     } else if( (n=possible_command.find_first_of("XYZF")) == 0 || (first_char == ' ' && n != string::npos) ) {
         // handle pycam syntax, use last modal group 1 command and resubmit if an X Y Z or F is found on its own line
         char buf[6];
-        snprintf(buf, sizeof(buf), "G%d ", modal_group_1);
+        if(possible_command[n] == 'F') {
+            // F on its own always applies to G1
+            strcpy(buf,"G1 ");
+        }else{
+            // use last modal command (G1 or G0 etc)
+            snprintf(buf, sizeof(buf), "G%d ", modal_group_1);
+        }
         possible_command.insert(0, buf);
         goto try_again;
 

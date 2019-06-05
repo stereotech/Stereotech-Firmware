@@ -251,7 +251,7 @@ void FiveAxisStrategy::print_calibr(StreamOutput *stream)
     stream->printf("Y axis correction: %1.4f %1.4f %1.4f\n", calibration[EYX], calibration[EYY], calibration[EYZ]);
     stream->printf("Z axis correction: %1.4f %1.4f %1.4f\n", calibration[EZX], calibration[EZY], calibration[EZZ]);
     stream->printf("A axis correction: %1.4f %1.4f %1.4f\n", calibration[EXA], calibration[EYA], calibration[EZA]);
-    stream->printf("C axis correction: %1.4f %1.4f %1.4f\n", calibration[XOC], calibration[YOC], calibration[ZOC]);
+    stream->printf("B axis correction: %1.4f %1.4f %1.4f\n", calibration[XOC], calibration[YOC], calibration[ZOC]);
 }
 
 void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
@@ -356,9 +356,11 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     }
     delete[] cmd;
 
-    zprobe->coordinated_move(NAN, NAN, 20, zprobe->getFastFeedrate(), true);
+    zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate(), true);
+    Gcode homeA("G28 A0", &(StreamOutput::NullStream));
+    THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeA);
     Gcode rotateA("G0 A0", &(StreamOutput::NullStream));
-    THEKERNEL->call_event(ON_GCODE_RECEIVED, &a_offset);
+    THEKERNEL->call_event(ON_GCODE_RECEIVED, &rotateA);
 }
 
 void FiveAxisStrategy::setCAxisRegardingXY(StreamOutput *stream)
@@ -373,8 +375,8 @@ void FiveAxisStrategy::setCAxisRegardingXY(StreamOutput *stream)
     if (!isnan(c_offset))
     {
         size_t n = strlen(cmd);
-        snprintf(&cmd[n], 128 - n, "G0 C%1.3f", c_offset);
-        stream->printf("C axis offset is:%1.3f", c_offset);
+        snprintf(&cmd[n], 128 - n, "G0 B%1.3f", c_offset);
+        stream->printf("B axis offset is:%1.3f", c_offset);
         Gcode offset(cmd, &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
     }
@@ -527,7 +529,7 @@ void FiveAxisStrategy::preCAxisBeatingCorrection(StreamOutput *stream)
     zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
     stream->printf("Moving to probe point 7: x%1.3f y%1.3f z%1.3f\n", x, y, z);
 
-    Gcode offset("G0 C180", &(StreamOutput::NullStream));
+    Gcode offset("G0 B180", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
 }
 
@@ -550,11 +552,14 @@ void FiveAxisStrategy::cAxisBeatingCorrection(StreamOutput *stream)
 
     setThirdAdjustFunction(true);
 
+    Gcode offset("G0 B270", &(StreamOutput::NullStream));
+    THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
+
     //Move to the eight point
     float x, y, z;
     std::tie(x, y, z) = probe_points[7];
     zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
-    stream->printf("Moving to probe point 7: x%1.3f y%1.3f z%1.3f\n", x, y, z);
+    stream->printf("Moving to probe point 8: x%1.3f y%1.3f z%1.3f\n", x, y, z);
 }
 
 void FiveAxisStrategy::preAAxisBeatingCorrection(StreamOutput *stream)
@@ -565,7 +570,7 @@ void FiveAxisStrategy::preAAxisBeatingCorrection(StreamOutput *stream)
     actual_probe_points[7] = std::make_tuple(position[0], position[1], position[2]);
     stream->printf("Probe point 8 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
 
-    zprobe->coordinated_move(position[0], position[1], position[2] + probe_device_small_part_length, zprobe->getFastFeedrate());
+    zprobe->coordinated_move(position[0], position[1], position[2] + 40, zprobe->getFastFeedrate());
 
     Gcode offset("G0 A90", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
@@ -600,7 +605,7 @@ void FiveAxisStrategy::preZAxisCorrectionResetting(StreamOutput *stream)
 {
     zprobe->coordinated_move(NAN, NAN, probe_device_small_part_length + probe_device_big_part_length, zprobe->getFastFeedrate());
 
-    Gcode offset("G0 C45", &(StreamOutput::NullStream));
+    Gcode offset("G0 B360", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
 
     //Move to the ten point

@@ -373,7 +373,7 @@ void FiveAxisStrategy::setCAxisRegardingXY(StreamOutput *stream)
     float y1, y2, x1, x2, z1, z2;
     std::tie(x1, y1, z1) = actual_probe_points[0];
     std::tie(x2, y2, z2) = actual_probe_points[1];
-    c_offset = atan2f((y2 - y1), (x2 - x1));
+    c_offset = -57.2958 * atanf((x2 - x1) / (y2 - y1));
 
     char *cmd = new char[128];
     if (!isnan(c_offset))
@@ -472,9 +472,9 @@ void FiveAxisStrategy::linearCorrection(StreamOutput *stream)
     }
 
     float xxmatrix[3] = {x3 - x2, x4 - x3 - (probe_device_small_part_length + probe_device_big_part_length) * cosf(calibration[B]), x5 - x4 + 2 * (probe_device_small_part_length + probe_device_big_part_length)};
-    float detXX = matrixDeterminant(xxmatrix[0], matrix[0][1], matrix[0][2],
-                                    xxmatrix[1], matrix[1][1], matrix[1][2],
-                                    xxmatrix[2], matrix[2][1], matrix[2][2]);
+    float detXX = matrixDeterminant(xxmatrix[0], xxmatrix[1], xxmatrix[2],
+                                    matrix[1][0], matrix[1][1], matrix[1][2],
+                                    matrix[2][0], matrix[2][1], matrix[2][2]);
     float detXY = matrixDeterminant(matrix[0][0], xxmatrix[0], matrix[0][2],
                                     matrix[1][0], xxmatrix[1], matrix[1][2],
                                     matrix[2][0], xxmatrix[2], matrix[2][2]);
@@ -484,6 +484,7 @@ void FiveAxisStrategy::linearCorrection(StreamOutput *stream)
     calibration[EXX] = detXX / commonDeterminant;
     calibration[EXY] = detXY / commonDeterminant;
     calibration[EXZ] = detXZ / commonDeterminant;
+    stream->printf("Calibration Kexx: %1.3f Kexy: %1.3f Kexz: %1.3f\n", calibration[EXX], calibration[EXY], calibration[EXZ]);
 
     float yymatrix[3] = {y3 - y2 + (probe_device_small_part_length + probe_device_big_part_length), y4 - y3, y5 - y4};
     float detYX = matrixDeterminant(yymatrix[0], matrix[0][1], matrix[0][2],
@@ -498,6 +499,7 @@ void FiveAxisStrategy::linearCorrection(StreamOutput *stream)
     calibration[EYX] = detYX / commonDeterminant;
     calibration[EYY] = detYY / commonDeterminant;
     calibration[EYZ] = detYZ / commonDeterminant;
+    stream->printf("Calibration Keyx: %1.3f Keyy: %1.3f Keyz: %1.3f\n", calibration[EYX], calibration[EYY], calibration[EYZ]);
 
     float zzmatrix[3] = {z3 - z2, z4 - z3 - (probe_device_big_part_length + probe_device_small_part_length) * sinf(calibration[B]), z5 - z4};
     float detZX = matrixDeterminant(zzmatrix[0], matrix[0][1], matrix[0][2],
@@ -512,6 +514,7 @@ void FiveAxisStrategy::linearCorrection(StreamOutput *stream)
     calibration[EZX] = detZX / commonDeterminant;
     calibration[EZY] = detZY / commonDeterminant;
     calibration[EZZ] = detZZ / commonDeterminant;
+    stream->printf("Calibration Kezx: %1.3f Kezy: %1.3f Kezz: %1.3f\n", calibration[EZX], calibration[EZY], calibration[EZZ]);
 
     setSecondAdjustFunction(true);
 
@@ -651,31 +654,31 @@ float FiveAxisStrategy::matrixDeterminant(float a, float b, float c, float d, fl
 float FiveAxisStrategy::helperL1(float x, float z)
 {
     float l1 = sqrtf((x - calibration[X0]) * (x - calibration[X0]) + (z - calibration[Z0]) * (z - calibration[Z0]));
-    this->stream->printf("L1 : %1.3f\n", l1);
+    //this->stream->printf("L1 : %1.3f\n", l1);
     return l1;
 }
 
 float FiveAxisStrategy::helperP(float x, float z)
 {
-    float p = 4 * ((x + calibration[X0]) * (x + calibration[X0]) + (z + calibration[Z0]) * (z + calibration[Z0]));
-    this->stream->printf("P : %1.3f\n", p);
+    float p = 4 * ((x - calibration[X0]) * (x - calibration[X0]) + (z - calibration[Z0]) * (z - calibration[Z0]));
+    //this->stream->printf("P : %1.3f\n", p);
     return p;
 }
 
 float FiveAxisStrategy::helperQ(float x, float z)
 {
-    float q = -4 * (x + calibration[X0]) * ((x + calibration[X0]) * (x + calibration[X0]) + (z + calibration[Z0]) * (z + calibration[Z0]) + helperL1(x, z) * helperL1(x, z) * (1 - calibration[T]));
-    this->stream->printf("Q : %1.3f\n", q);
+    float q = -4 * (x - calibration[X0]) * ((x - calibration[X0]) * (x - calibration[X0]) + (z - calibration[Z0]) * (z - calibration[Z0]) + helperL1(x, z) * helperL1(x, z) * (1 - calibration[T]));
+    //this->stream->printf("Q : %1.3f\n", q);
     return q;
 }
 
 float FiveAxisStrategy::helperR(float x, float z)
 {
-    float a = (x + calibration[X0]) * (x + calibration[X0]) + (z + calibration[Z0]) * (z + calibration[Z0]);
+    float a = (x - calibration[X0]) * (x - calibration[X0]) + (z - calibration[Z0]) * (z - calibration[Z0]);
     float b = helperL1(x, z) * helperL1(x, z) * helperL1(x, z) * helperL1(x, z) * (1 - calibration[T]) * (1 - calibration[T]);
-    float c = 2 * helperL1(x, z) * helperL1(x, z) * (1 - calibration[T]) * a - 4 * helperL1(x, z) * helperL1(x, z) * (z + calibration[Z0]) * (z + calibration[Z0]);
+    float c = 2 * helperL1(x, z) * helperL1(x, z) * (1 - calibration[T]) * a - 4 * helperL1(x, z) * helperL1(x, z) * (z - calibration[Z0]) * (z - calibration[Z0]);
     float r = a * a + b + c;
-    this->stream->printf("R : %1.3f (a-%1.3f, b-%1.3f, c-%1.3f)\n", r, a, b, c);
+    //this->stream->printf("R : %1.3f (a-%1.3f, b-%1.3f, c-%1.3f)\n", r, a, b, c);
     return r;
 }
 
@@ -688,6 +691,7 @@ float FiveAxisStrategy::helperXi(float x, float z)
         this->stream->printf("Xi : 0\n");
         return 0;
     }
+
     this->stream->printf("Xi : varA-%1.3f, varb-%1.3f\n", variantA, variantB);
     if (variantA > helperL1(x, z))
     {
@@ -710,6 +714,11 @@ float FiveAxisStrategy::helperDzeta(float x, float z)
     {
         dzeta = -sqrtf(helperL1(x, z) * helperL1(x, z) - helperXi(x, z) * helperXi(x, z));
     }
+    else
+    {
+        dzeta = 0;
+    }
+
     this->stream->printf("Dzeta : %1.3f\n", dzeta);
     return dzeta;
 }
@@ -787,15 +796,19 @@ void FiveAxisStrategy::firstCompensationFunction(float *target, bool inverse)
     if (inverse)
     {
         this->stream->printf("FirstFunction input: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
-        target[X_AXIS] = -helperXi(x, z) + calibration[X0];
-        target[Z_AXIS] = -helperDzeta(x, z) + calibration[Z0];
+        float targetx = -helperXi(x, z) + calibration[X0];
+        float targetz = -helperDzeta(x, z) + calibration[Z0];
+        target[X_AXIS] = isnan(targetx) ? target[X_AXIS] : targetx;
+        target[Z_AXIS] = isnan(targetz) ? target[Z_AXIS] : targetz;
         this->stream->printf("FirstFunction output: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
     }
     else
     {
         this->stream->printf("FirstFunction input: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
-        target[X_AXIS] = helperXi(x, z) + calibration[X0];
-        target[Z_AXIS] = helperDzeta(x, z) + calibration[Z0];
+        float targetx = helperXi(x, z) + calibration[X0];
+        float targetz = helperDzeta(x, z) + calibration[Z0];
+        target[X_AXIS] = isnan(targetx) ? target[X_AXIS] : targetx;
+        target[Z_AXIS] = isnan(targetz) ? target[Z_AXIS] : targetz;
         this->stream->printf("FirstFunction output: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
     }
 }

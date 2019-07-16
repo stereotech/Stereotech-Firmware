@@ -20,13 +20,13 @@ private:
   void setCAxisRegardingXY(StreamOutput *stream);
   void preLinearCorrection(StreamOutput *stream);
   void setBAxisCorrection(StreamOutput *stream);
-  void linearCorrection(StreamOutput *stream);
+  //void linearCorrection(StreamOutput *stream);
   void preCAxisBeatingCorrection(StreamOutput *stream);
   void cAxisBeatingCorrection(StreamOutput *stream);
   void preAAxisBeatingCorrection(StreamOutput *stream);
   void aAxisBeatingCorrection(StreamOutput *stream);
-  void preZAxisCorrectionResetting(StreamOutput *stream);
-  void zAxisCorrectionResetting(StreamOutput *stream);
+  //void preZAxisCorrectionResetting(StreamOutput *stream);
+  //void zAxisCorrectionResetting(StreamOutput *stream);
 
   void save_calibr(StreamOutput *stream);
   bool load_calibr(StreamOutput *stream);
@@ -42,12 +42,12 @@ private:
 
   float matrixDeterminant(float a, float b, float c, float d, float e, float f, float g, float h, float i);
 
-  std::tuple<float, float, float> probe_points[10];
-  std::tuple<float, float, float> actual_probe_points[10];
+  std::tuple<float, float, float> probe_points[8];
+  std::tuple<float, float, float> actual_probe_points[8];
   float big_part_length;
   float small_part_length;
   bool home;
-  float calibration[19];
+  float calibration[10];
   StreamOutput *stream;
 
 public:
@@ -60,8 +60,8 @@ public:
   void firstCompensationFunction(float *target, bool inverse);
   void setSecondAdjustFunction(bool);
   void secondCompensationFunction(float *target, bool inverse);
-  void setThirdAdjustFunction(bool);
-  void thirdCompensationFunction(float *target, bool inverse);
+  //void setThirdAdjustFunction(bool);
+  //void thirdCompensationFunction(float *target, bool inverse);
   void setFinalAdjustFunction(bool);
   void finalCompensationFunction(float *target, bool inverse);
 };

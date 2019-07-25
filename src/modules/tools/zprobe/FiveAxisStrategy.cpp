@@ -273,6 +273,11 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
         {
             zprobe->home();
         }
+
+        Gcode beforeHome("M206 A0", &(StreamOutput::NullStream));
+        THEKERNEL->call_event(ON_GCODE_RECEIVED, &beforeHome);
+        Gcode homeA("G28 A0", &(StreamOutput::NullStream));
+        THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeA);
         Gcode afterHome("G0 Z100", &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &afterHome);
     }
@@ -357,20 +362,23 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     z2 = std::get<2>(actual_probe_points[1]);
     a_offset = -57.2958 * asinf((z2 - z1) / (2 * (this->big_part_length + this->small_part_length)));
 
-    char *cmd = new char[128];
+    zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate());
+
+    char *cmd = new char[32];
     if (!isnan(a_offset))
     {
         size_t n = strlen(cmd);
-        snprintf(&cmd[n], 128 - n, "M206 A%1.3f", a_offset);
-        stream->printf("A axis offset is:%1.3f", a_offset);
-        Gcode offset(cmd, &(StreamOutput::NullStream));
-        THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
+        snprintf(&cmd[n], 32 - n, "M206 A%1.3f", a_offset);
+        stream->printf("A axis offset is:%1.3f\n", a_offset);
+        Gcode aOffsetGcode(cmd, &(StreamOutput::NullStream));
+        THEKERNEL->call_event(ON_GCODE_RECEIVED, &aOffsetGcode);
     }
     delete[] cmd;
 
-    zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate(), true);
     Gcode homeA("G28 A0", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeA);
+    Gcode zeroA("G0 A0", &(StreamOutput::NullStream));
+    THEKERNEL->call_event(ON_GCODE_RECEIVED, &zeroA);
 
     float c_offset = 0;
     float y1, y2, x1, x2;
@@ -378,14 +386,16 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     std::tie(x2, y2, z2) = actual_probe_points[1];
     c_offset = -57.2958 * atanf((x2 - x1) / (y2 - y1));
 
-    char *cmdc = new char[128];
+    char *cmdc = new char[32];
     if (!isnan(c_offset))
     {
-        size_t n = strlen(cmdc);
-        snprintf(&cmdc[n], 128 - n, "G0 A0 C%1.3f F1200", c_offset);
-        stream->printf("C axis offset is:%1.3f\n", c_offset);
+        size_t nc = strlen(cmdc);
+        snprintf(&cmdc[nc], 32 - nc, "G0 C%1.3f", c_offset);
+        stream->printf(cmdc);
         Gcode offset(cmdc, &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
+        stream->printf("C axis offset is:%1.3f\n", c_offset);
+
         Gcode homeC("G92 C0", &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeC);
     }

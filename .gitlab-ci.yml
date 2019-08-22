@@ -28,7 +28,7 @@ run-deploy:
   image: python:latest
   stage: deploy
   before_script:
-    - pip instal awscli
+    - pip install awscli
   script:
     - python -m zipfile -c smoothieware-build.zip LPC1768/
     - aws s3 cp smoothieware-build.zip s3://${BUCKET_NAME}/smoothieware/release/

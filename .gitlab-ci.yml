@@ -12,6 +12,7 @@ before_script:
 
 stages:
   - build
+  - deploy
 
 run-build:
   stage: build
@@ -20,3 +21,35 @@ run-build:
   artifacts:
     paths:
       - LPC1768/
+  only:
+    - develop
+
+run-deploy:
+  image: python:latest
+  stage: deploy
+  before_script:
+    - pip instal awscli
+  script:
+    - python -m zipfile -c smoothieware-build.zip LPC1768/
+    - aws s3 cp smoothieware-build.zip s3://${BUCKET_NAME}/smoothieware/release/
+  environment:
+    name: release
+    url: https://s3.eu-west-3.amazonaws.com/${BUCKET_NAME}/smoothieware/release
+    on_stop: run-clean
+  only:
+    - develop
+
+run-clean:
+  image: python:latest
+  stage: deploy
+  before_script:
+    - pip install awscli
+  script:
+    - aws s3 rm s3://${BUCKET_NAME}/smoothieware/release/smoothieware-build.zip
+  environment:
+    name: release
+    action: stop
+  when: manual
+
+
+

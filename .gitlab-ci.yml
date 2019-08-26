@@ -31,10 +31,10 @@ run-deploy:
     - pip install awscli
   script:
     - python -m zipfile -c smoothieware-build.zip LPC1768/
-    - aws s3 cp smoothieware-build.zip s3://${BUCKET_NAME}/smoothieware/release/
+    - aws s3 cp smoothieware-build.zip s3://${BUCKET_NAME}/smoothieware/stable/
   environment:
-    name: release
-    url: https://s3.eu-west-3.amazonaws.com/${BUCKET_NAME}/smoothieware/release
+    name: stable
+    url: https://s3.eu-west-3.amazonaws.com/${BUCKET_NAME}/smoothieware/stable
     on_stop: run-clean
   only:
     - develop
@@ -45,9 +45,9 @@ run-clean:
   before_script:
     - pip install awscli
   script:
-    - aws s3 rm s3://${BUCKET_NAME}/smoothieware/release/smoothieware-build.zip
+    - aws s3 rm s3://${BUCKET_NAME}/smoothieware/stable/smoothieware-build.zip
   environment:
-    name: release
+    name: stable
     action: stop
   when: manual
 

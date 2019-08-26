@@ -30,7 +30,7 @@ run-deploy:
     - aws s3 cp smoothie-build.zip s3://${BUCKET_NAME}/smoothieware/stable/
   environment:
     name: stable
-    url: http://${BUCKET_NAME}/smoothieware/stable/main.bin
+    url: http://${BUCKET_NAME}/smoothieware/stable/smoothie-build.zip
     on_stop: run-clean
   only:
     - develop
@@ -41,7 +41,7 @@ run-clean:
   before_script:
     - pip install awscli
   script:
-    - aws s3 rm s3://${BUCKET_NAME}/smoothieware/stable/smoothieware-build.zip
+    - aws s3 rm s3://${BUCKET_NAME}/smoothieware/stable/smoothie-build.zip
   environment:
     name: stable
     action: stop

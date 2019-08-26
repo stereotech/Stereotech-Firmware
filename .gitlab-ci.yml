@@ -26,7 +26,8 @@ run-deploy:
   before_script:
     - pip install awscli
   script:
-    - aws s3 cp LPC1768/ s3://${BUCKET_NAME}/smoothieware/stable/ --recursive
+    - python -m zipfile -c smoothie-build.zip LPC1768/main.bin LPC1768/configs/
+    - aws s3 cp smoothie-build.zip s3://${BUCKET_NAME}/smoothieware/stable/
   environment:
     name: stable
     url: http://${BUCKET_NAME}/smoothieware/stable/main.bin

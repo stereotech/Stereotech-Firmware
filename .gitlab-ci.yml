@@ -13,6 +13,7 @@ run-build:
     - export PATH="/builds/stereotech/stefirmware/smoothieware/gcc-arm-none-eabi/bin:$PATH"
   script:
     - make clean all
+    - cp -r ConfigSamples/STEBoard/ LPC1768/configs
   artifacts:
     paths:
       - LPC1768/

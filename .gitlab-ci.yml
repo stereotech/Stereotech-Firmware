@@ -30,7 +30,7 @@ run-deploy:
   before_script:
     - pip install awscli
   script:
-    - aws s3 cp LPC1768/ s3://${BUCKET_NAME}/smoothieware/stable/ --recursive
+    - aws s3 cp LPC1768/ s3://${BUCKET_NAME}/smoothieware/stable/ --recursive --debug
   environment:
     name: stable
     url: https://s3.eu-west-3.amazonaws.com/${BUCKET_NAME}/smoothieware/stable

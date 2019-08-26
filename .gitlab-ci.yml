@@ -1,21 +1,16 @@
-image: gcc
-
-before_script:
-  - export DEBIAN_FRONTEND=noninteractive
-  - apt-get update -qq && apt-get install -y apt-utils libc6-dev-i386 build-essential lib32z1 lib32ncurses6
-  - /builds/stereotech/stefirmware/smoothieware/linux_install
-  - /builds/stereotech/stefirmware/smoothieware/BuildShell
-  - export PATH="/builds/stereotech/stefirmware/smoothieware/gcc-arm-none-eabi/bin:$PATH"
-#  - add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
-#  - apt-get update -qq
-#  - apt-get install -y --force-yes gcc-arm-none-eabi
-
 stages:
   - build
   - deploy
 
 run-build:
   stage: build
+  image: gcc
+  before_script:
+    - export DEBIAN_FRONTEND=noninteractive
+    - apt-get update -qq && apt-get install -y apt-utils libc6-dev-i386 build-essential lib32z1 lib32ncurses6
+    - /builds/stereotech/stefirmware/smoothieware/linux_install
+    - /builds/stereotech/stefirmware/smoothieware/BuildShell
+    - export PATH="/builds/stereotech/stefirmware/smoothieware/gcc-arm-none-eabi/bin:$PATH"
   script:
     - make clean all
   artifacts:

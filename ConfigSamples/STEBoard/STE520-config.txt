@@ -21,13 +21,13 @@ beta_steps_per_mm                            640               # Steps per mm fo
 gamma_steps_per_mm                           800             # Steps per mm for gamma ( Z ) stepper
 delta_steps_per_mm                           26.67
 epsilon_steps_per_mm                         26.67
-zeta_steps_per_mm                            80
+zeta_steps_per_mm                            26.67
 
 # Planner module configuration : Look-ahead and acceleration configuration
 # See http://smoothieware.org/motion-control
 acceleration                                 1000             # Acceleration in mm/second/second.
 z_acceleration                               200              # Acceleration for Z only moves in mm/s^2, 0 uses acceleration which is the default. DO NOT SET ON A DELTA
-junction_deviation                           0.005             # See http://smoothieware.org/motion-control#junction-deviation
+junction_deviation                           0.001             # See http://smoothieware.org/motion-control#junction-deviation
 z_junction_deviation                         0.0              # For Z only moves, -1 uses junction_deviation, zero disables junction_deviation on z moves DO NOT SET ON A DELTA
 
 # Cartesian axis speed limits
@@ -41,32 +41,32 @@ z_axis_max_speed                             1500              # Maximum speed i
 alpha_step_pin                               2.0              # Pin for alpha stepper step signal
 alpha_dir_pin                                0.5              # Pin for alpha stepper direction, add '!' to reverse direction
 alpha_en_pin                                 0.4              # Pin for alpha enable pin
-alpha_max_rate                               12000.0          # Maximum rate in mm/min
+alpha_max_rate                               9000.0          # Maximum rate in mm/min
 
 beta_step_pin                                2.1              # Pin for beta stepper step signal
 beta_dir_pin                                 0.11             # Pin for beta stepper direction, add '!' to reverse direction
 beta_en_pin                                  0.10             # Pin for beta enable
-beta_max_rate                                12000.0          # Maxmimum rate in mm/min
+beta_max_rate                                9000.0          # Maxmimum rate in mm/min
 
 gamma_step_pin                               2.2              # Pin for gamma stepper step signal
-gamma_dir_pin                                0.20!             # Pin for gamma stepper direction, add '!' to reverse direction
+gamma_dir_pin                                0.20             # Pin for gamma stepper direction, add '!' to reverse direction
 gamma_en_pin                                 0.19             # Pin for gamma enable
 gamma_max_rate                               1500.0            # Maximum rate in mm/min
 
 delta_step_pin                               1.15             # Pin for delta stepper step signal
-delta_dir_pin                                1.14             # Pin for delta stepper direction, add '!' to reverse direction
+delta_dir_pin                                1.14!             # Pin for delta stepper direction, add '!' to reverse direction
 delta_en_pin                                 1.16             # Pin for delta enable
-delta_max_rate                               30000.0          # Maxmimum rate in mm/min
+delta_max_rate                               10000.0          # Maxmimum rate in mm/min
 
-epsilon_step_pin                             1.18              # Pin for epsilon stepper step signal
-epsilon_dir_pin                              1.17!             # Pin for epsilon stepper direction, add '!' to reverse direction
-epsilon_en_pin                               1.19             # Pin for epsilon enable
-epsilon_max_rate                             30000.0          # Maxmimum rate in mm/min
+epsilon_step_pin                             2.11               # Pin for epsilon stepper step signal
+epsilon_dir_pin                              0.28             # Pin for epsilon stepper direction, add '!' to reverse direction
+epsilon_en_pin                               2.12              # Pin for epsilon enable
+epsilon_max_rate                             10000.0          # Maxmimum rate in mm/min
 
-zeta_step_pin                                2.11              # Pin for zeta stepper step signal
-zeta_dir_pin                                 0.28             # Pin for zeta stepper direction, add '!' to reverse direction
-zeta_en_pin                                  2.12             # Pin for zeta enable
-zeta_max_rate                                30000.0          # Maxmimum rate in mm/min
+zeta_step_pin                                1.18              # Pin for zeta stepper step signal
+zeta_dir_pin                                 1.17              # Pin for zeta stepper direction, add '!' to reverse direction
+zeta_en_pin                                  1.19             # Pin for zeta enable
+zeta_max_rate                                10000.0          # Maxmimum rate in mm/min
 
 ## Extruder module configuration
 # See http://smoothieware.org/extruder
@@ -77,7 +77,7 @@ extruder.hotend.acceleration                    500           # Acceleration for
 extruder.hotend.max_speed                       50            # Maximum speed in mm/s
 
 extruder.hotend.step_pin                        2.3           # Pin for extruder step signal
-extruder.hotend.dir_pin                         0.22          # Pin for extruder dir signal ( add '!' to reverse direction )
+extruder.hotend.dir_pin                         0.22!          # Pin for extruder dir signal ( add '!' to reverse direction )
 extruder.hotend.en_pin                          0.21          # Pin for extruder enable signal
 
 # Second extruder module configuration
@@ -136,7 +136,7 @@ temperature_control.hotend2.p_factor          17.1           # P ( proportional 
 temperature_control.hotend2.i_factor          0.827          # I ( integral ) factor
 temperature_control.hotend2.d_factor          89             # D ( derivative ) factor
 
-temperature_control.bed.enable               true             # Whether to activate this ( "hotend" ) module at all.
+temperature_control.bed.enable               false             # Whether to activate this ( "hotend" ) module at all.
 temperature_control.bed.thermistor_pin       0.24             # Pin for the thermistor to read
 temperature_control.bed.heater_pin           1.9              # Pin that controls the heater
 temperature_control.bed.thermistor           EPCOS100K    # See http://smoothieware.org/temperaturecontrol#thermistor
@@ -208,7 +208,7 @@ temperatureswitch.bottom.inverted              false          #
 ## Endstops new syntax (the name is not significant) ONLY use if you use A B or C axis endstops (DO NOT USE if using just XYZ)
 # NOTE only a min or a max homing endstop maybe defined
 endstop.minx.enable                          true             # enable an endstop
-endstop.minx.pin                             1.24!             # pin
+endstop.minx.pin                             1.25!             # pin
 endstop.minx.homing_direction                home_to_min      # direction it moves to the endstop
 endstop.minx.homing_position                 0                # the cartesian coordinate this is set to when it homes
 endstop.minx.axis                            X                # the axis designator
@@ -276,7 +276,7 @@ homing_order                                  AZYX              # x axis followe
 
 ## Z-probe
 # See http://smoothieware.org/zprobe
-zprobe.enable                                false           # Set to true to enable a zprobe
+zprobe.enable                                true           # Set to true to enable a zprobe
 zprobe.probe_pin                             1.28!          # Pin probe is attached to, if NC remove the !
 zprobe.slow_feedrate                         5               # Mm/sec probe feed rate
 #zprobe.debounce_ms                          1               # Set if noisy
@@ -284,16 +284,20 @@ zprobe.fast_feedrate                         100             # Move feedrate mm/
 zprobe.probe_height                          5               # How much above bed to start probe
 #gamma_min_endstop                           nc              # Normally 1.28. Change to nc to prevent conflict,
 
-# Levelling strategy
-# Example for 3-point levelling strategy, see wiki documentation for other strategies
-#leveling-strategy.three-point-leveling.enable         true        # a leveling strategy that probes three points to define a plane and keeps the Z parallel to that plane
-#leveling-strategy.three-point-leveling.point1         100.0,0.0   # the first probe point (x,y) optional may be defined with M557
-#leveling-strategy.three-point-leveling.point2         200.0,200.0 # the second probe point (x,y)
-#leveling-strategy.three-point-leveling.point3         0.0,200.0   # the third probe point (x,y)
-#leveling-strategy.three-point-leveling.home_first     true        # home the XY axis before probing
-#leveling-strategy.three-point-leveling.tolerance      0.03        # the probe tolerance in mm, anything less that this will be ignored, default is 0.03mm
-#leveling-strategy.three-point-leveling.probe_offsets  0,0,0       # the probe offsets from nozzle, must be x,y,z, default is no offset
-#leveling-strategy.three-point-leveling.save_plane     false       # set to true to allow the bed plane to be saved with M500 default is false
+leveling-strategy.five-axis.enable                     true
+leveling-strategy.five-axis.home_first                 true
+leveling-strategy.five-axis.big_part_length            32.5
+leveling-strategy.five-axis.small_part_length          22.4
+leveling-strategy.five-axis.point1                     100.0,90.0,80.0
+leveling-strategy.five-axis.point2                     100.0,40.0,80.0
+leveling-strategy.five-axis.point3                     100.0,90.0,80.0
+leveling-strategy.five-axis.point4                     150.0,90.0,80.0
+leveling-strategy.five-axis.point5                     100.0,90.0,80.0
+leveling-strategy.five-axis.point6                     100.0,90.0,80.0
+leveling-strategy.five-axis.point7                     100.0,40.0,80.0
+leveling-strategy.five-axis.point8                     100.0,33.0,95.0
+#leveling-strategy.five-axis.point9                    100.0,33.0,80.0
+#leveling-strategy.five-axis.point10                   100.0,25.0,30.0
 
 panel.enable                                 false             # Set to true to enable the panel code
 network.enable                               false            # Enable the ethernet network services

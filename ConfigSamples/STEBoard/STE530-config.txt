@@ -19,9 +19,9 @@ mm_max_arc_error                             0.01             # The maximum erro
 alpha_steps_per_mm                           640               # Steps per mm for alpha ( X ) stepper
 beta_steps_per_mm                            640               # Steps per mm for beta ( Y ) stepper
 gamma_steps_per_mm                           800             # Steps per mm for gamma ( Z ) stepper
-delta_steps_per_mm                           26.67
-epsilon_steps_per_mm                         26.67
-zeta_steps_per_mm                            26.67
+delta_steps_per_mm                           26.666667
+epsilon_steps_per_mm                         26.666667
+zeta_steps_per_mm                            26.666667
 
 # Planner module configuration : Look-ahead and acceleration configuration
 # See http://smoothieware.org/motion-control

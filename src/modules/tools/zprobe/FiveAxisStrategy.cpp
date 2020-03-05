@@ -360,7 +360,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float z1, z2;
     z1 = std::get<2>(actual_probe_points[0]);
     z2 = std::get<2>(actual_probe_points[1]);
-    a_offset = -57.2958 * asinf((z2 - z1) / (2 * (this->big_part_length + this->small_part_length)));
+    a_offset = -57.2958 * asinf((z1 - z2) / (this->big_part_length + this->small_part_length));
 
     zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate());
 

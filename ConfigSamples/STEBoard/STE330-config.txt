@@ -251,7 +251,7 @@ temperatureswitch.bottom.inverted              false          #
 ## Endstops new syntax (the name is not significant) ONLY use if you use A B or C axis endstops (DO NOT USE if using just XYZ)
 # NOTE only a min or a max homing endstop maybe defined
 endstop.minx.enable                          true             # enable an endstop
-endstop.minx.pin                             1.24             # pin
+endstop.minx.pin                             1.24!             # pin
 endstop.minx.homing_direction                home_to_min      # direction it moves to the endstop
 endstop.minx.homing_position                 0                # the cartesian coordinate this is set to when it homes
 endstop.minx.axis                            X                # the axis designator

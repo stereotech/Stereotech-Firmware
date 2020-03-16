@@ -316,3 +316,5 @@ led_strip_red_pin                           1.8
 led_strip_green_pin                         1.4
 led_strip_blue_pin                          1.1
 led_strip_white_pin                         1.0
+
+save_g54                                    true

@@ -255,12 +255,12 @@ endstop.maxa.slow_rate                       2                # slow homing rate
 endstop.maxa.retract                         5                # bounce off endstop in mm
 
 soft_endstop.enable         true         # Enable soft endstops
-soft_endstop.x_min          -20            # Minimum X position
-soft_endstop.x_max          220          # Maximum X position
-soft_endstop.y_min          -20            # Minimum Y position
-soft_endstop.y_max          220          # Maximum Y position
-soft_endstop.z_min          -20            # Minimum Z position
-soft_endstop.z_max          220          # Maximum Z position
+soft_endstop.x_min          -120            # Minimum X position
+soft_endstop.x_max          320          # Maximum X position
+soft_endstop.y_min          -120            # Minimum Y position
+soft_endstop.y_max          320          # Maximum Y position
+soft_endstop.z_min          -120            # Minimum Z position
+soft_endstop.z_max          320          # Maximum Z position
 soft_endstop.halt           false         # Whether to issue a HALT state when hitting a soft endstop (if false, will just ignore commands that would exceed the limit)
 
 # type of machine

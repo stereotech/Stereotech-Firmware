@@ -88,7 +88,7 @@ extruder.hotend2.acceleration                   500          # Acceleration for 
 extruder.hotend2.max_speed                      50           # mm/s
 
 extruder.hotend2.step_pin                       2.8          # Pin for extruder step signal
-extruder.hotend2.dir_pin                        2.13!         # Pin for extruder dir signal ( add '!' to reverse direction )
+extruder.hotend2.dir_pin                        2.13         # Pin for extruder dir signal ( add '!' to reverse direction )
 extruder.hotend2.en_pin                         4.29         # Pin for extruder enable signal
 
 #extruder.hotend2.x_offset                       0            # x offset from origin in mm

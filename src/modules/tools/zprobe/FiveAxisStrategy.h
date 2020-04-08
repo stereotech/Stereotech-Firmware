@@ -17,10 +17,9 @@ private:
   void makeHome();
   void gotoStep(uint8_t step, StreamOutput *stream);
   void setAAxisZero(StreamOutput *stream);
-  void setCAxisRegardingXY(StreamOutput *stream);
   void preLinearCorrection(StreamOutput *stream);
   void setBAxisCorrection(StreamOutput *stream);
-  //void linearCorrection(StreamOutput *stream);
+  void linearCorrection(StreamOutput *stream);
   void preCAxisBeatingCorrection(StreamOutput *stream);
   void cAxisBeatingCorrection(StreamOutput *stream);
   void preAAxisBeatingCorrection(StreamOutput *stream);

@@ -29,7 +29,7 @@
 #define probe_point_6_checksum CHECKSUM("point6")
 #define probe_point_7_checksum CHECKSUM("point7")
 #define probe_point_8_checksum CHECKSUM("point8")
-//#define probe_point_9_checksum CHECKSUM("point9")
+#define probe_point_9_checksum CHECKSUM("point9")
 //#define probe_point_10_checksum CHECKSUM("point10")
 #define probe_device_big_part_length CHECKSUM("big_part_length")
 #define probe_device_small_part_length CHECKSUM("small_part_length")
@@ -77,7 +77,7 @@ bool FiveAxisStrategy::handleConfig()
     std::string p6 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_6_checksum)->by_default("")->as_string();
     std::string p7 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_7_checksum)->by_default("")->as_string();
     std::string p8 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_8_checksum)->by_default("")->as_string();
-    //std::string p9 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_9_checksum)->by_default("")->as_string();
+    std::string p9 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_9_checksum)->by_default("")->as_string();
     //std::string p10 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_10_checksum)->by_default("")->as_string();
 
     if (!p1.empty())
@@ -311,16 +311,15 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
     }
     else if (step == 4)
     {
-        setCAxisRegardingXY(stream);
+        preLinearCorrection(stream);
     }
     else if (step == 5)
     {
-        preLinearCorrection(stream);
+        setBAxisCorrection(stream);
     }
     else if (step == 6)
     {
-        setBAxisCorrection(stream);
-        //linearCorrection(stream);
+        linearCorrection(stream);
     }
     else if (step == 7)
     {
@@ -360,7 +359,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float z1, z2;
     z1 = std::get<2>(actual_probe_points[0]);
     z2 = std::get<2>(actual_probe_points[1]);
-    a_offset = -57.2958 * asinf((z1 - z2) / (this->big_part_length + this->small_part_length));
+    a_offset = 57.2958 * asinf((z1 - z2) / (this->big_part_length + this->small_part_length));
 
     zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate());
 
@@ -384,7 +383,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float y1, y2, x1, x2;
     std::tie(x1, y1, z1) = actual_probe_points[0];
     std::tie(x2, y2, z2) = actual_probe_points[1];
-    c_offset = -57.2958 * atanf((x2 - x1) / (y2 - y1));
+    c_offset = -57.2958 * (1 / atanf((y2 - y1) / (x2 - x1)));
 
     char *cmdc = new char[32];
     if (!isnan(c_offset))
@@ -400,21 +399,6 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeC);
     }
     delete[] cmdc;
-
-    //Move to the second point again
-    float x, y, z;
-    std::tie(x, y, z) = probe_points[1];
-    zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
-    stream->printf("Moving to probe point 2 again: x%1.3f y%1.3f z%1.3f\n", x, y, z);
-}
-
-void FiveAxisStrategy::setCAxisRegardingXY(StreamOutput *stream)
-{
-    //Save second point
-    float position[3];
-    THEROBOT->get_axis_position(position);
-    actual_probe_points[1] = std::make_tuple(position[0], position[1], position[2]);
-    stream->printf("Probe point 2 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
 
     //Move to the third point
     float x, y, z;
@@ -468,116 +452,98 @@ void FiveAxisStrategy::setBAxisCorrection(StreamOutput *stream)
     stream->printf("Moving to probe point 5: x%1.3f y%1.3f z%1.3f\n", x, y, z);
 }
 
-//void FiveAxisStrategy::linearCorrection(StreamOutput *stream)
-//{
-//    //Save fifth point
-//    float position[3];
-//    THEROBOT->get_axis_position(position);
-//    actual_probe_points[4] = std::make_tuple(position[0], position[1], position[2]);
-//    stream->printf("Probe point 5 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
-//
-//    float x2, y2, z2;
-//    float x3, y3, z3;
-//    float x4, y4, z4;
-//    float x5, y5, z5;
-//    std::tie(x2, y2, z2) = actual_probe_points[1];
-//    std::tie(x3, y3, z3) = actual_probe_points[2];
-//    std::tie(x4, y4, z4) = actual_probe_points[3];
-//    std::tie(x5, y5, z5) = actual_probe_points[4];
-//
-//    float matrix[3][3] = {
-//        {x3 - x2, y3 - y2, z3 - z2},
-//        {x4 - x3, y4 - y3, z4 - z3},
-//        {x5 - x4, y5 - y4, z5 - z4}};
-//
-//    float commonDeterminant = matrixDeterminant(matrix[0][0], matrix[0][1], matrix[0][2],
-//                                                matrix[1][0], matrix[1][1], matrix[1][2],
-//                                                matrix[2][0], matrix[2][1], matrix[2][2]);
-//    if (commonDeterminant == 0)
-//    {
-//        stream->printf("Error getting corrections, common determinant equals zero");
-//        return;
-//    }
-//
-//    float xxmatrix[3] = {x3 - x2,
-//                         x4 - x3 - ((this->small_part_length + this->big_part_length) * cosf(calibration[B])),
-//                         x5 - x4 + (2 * (this->small_part_length + this->big_part_length))};
-//    float detXX = matrixDeterminant(xxmatrix[0], matrix[0][1], xxmatrix[2],
-//                                    xxmatrix[1], matrix[1][1], matrix[1][2],
-//                                    xxmatrix[2], matrix[2][1], matrix[2][2]);
-//    float detXY = matrixDeterminant(matrix[0][0], xxmatrix[0], matrix[0][2],
-//                                    matrix[1][0], xxmatrix[1], matrix[1][2],
-//                                    matrix[2][0], xxmatrix[2], matrix[2][2]);
-//    float detXZ = matrixDeterminant(matrix[0][0], matrix[0][1], xxmatrix[0],
-//                                    matrix[1][0], matrix[1][1], xxmatrix[1],
-//                                    matrix[2][0], matrix[2][1], xxmatrix[2]);
-//    calibration[EXX] = detXX / commonDeterminant;
-//    calibration[EXY] = detXY / commonDeterminant;
-//    calibration[EXZ] = detXZ / commonDeterminant;
-//    stream->printf("Calibration Kexx: %1.3f Kexy: %1.3f Kexz: %1.3f\n", calibration[EXX], calibration[EXY], calibration[EXZ]);
-//
-//    float yymatrix[3] = {y3 - y2 + (this->small_part_length + this->big_part_length),
-//                         y4 - y3,
-//                         y5 - y4};
-//    float detYX = matrixDeterminant(yymatrix[0], matrix[0][1], matrix[0][2],
-//                                    yymatrix[1], matrix[1][1], matrix[1][2],
-//                                    yymatrix[2], matrix[2][1], matrix[2][2]);
-//    float detYY = matrixDeterminant(matrix[0][0], yymatrix[0], matrix[0][2],
-//                                    matrix[1][0], yymatrix[1], matrix[1][2],
-//                                    matrix[2][0], yymatrix[2], matrix[2][2]);
-//    float detYZ = matrixDeterminant(matrix[0][0], matrix[0][1], yymatrix[0],
-//                                    matrix[1][0], matrix[1][1], yymatrix[1],
-//                                    matrix[2][0], matrix[2][1], yymatrix[2]);
-//    calibration[EYX] = detYX / commonDeterminant;
-//    calibration[EYY] = detYY / commonDeterminant;
-//    calibration[EYZ] = detYZ / commonDeterminant;
-//    stream->printf("Calibration Keyx: %1.3f Keyy: %1.3f Keyz: %1.3f\n", calibration[EYX], calibration[EYY], calibration[EYZ]);
-//
-//    float zzmatrix[3] = {z3 - z2,
-//                         z4 - z3 - (this->big_part_length + this->small_part_length) * sinf(calibration[B]),
-//                         z5 - z4};
-//    float detZX = matrixDeterminant(zzmatrix[0], matrix[0][1], matrix[0][2],
-//                                    zzmatrix[1], matrix[1][1], matrix[1][2],
-//                                    zzmatrix[2], matrix[2][1], matrix[2][2]);
-//    float detZY = matrixDeterminant(matrix[0][0], zzmatrix[0], matrix[0][2],
-//                                    matrix[1][0], zzmatrix[1], matrix[1][2],
-//                                    matrix[2][0], zzmatrix[2], matrix[2][2]);
-//    float detZZ = matrixDeterminant(matrix[0][0], matrix[0][1], zzmatrix[0],
-//                                    matrix[1][0], matrix[1][1], zzmatrix[1],
-//                                    matrix[2][0], matrix[2][1], zzmatrix[2]);
-//    calibration[EZX] = detZX / commonDeterminant;
-//    calibration[EZY] = detZY / commonDeterminant;
-//    calibration[EZZ] = detZZ / commonDeterminant;
-//    stream->printf("Calibration Kezx: %1.3f Kezy: %1.3f Kezz: %1.3f\n", calibration[EZX], calibration[EZY], calibration[EZZ]);
-//
-//    //setSecondAdjustFunction(true);
-//
-//    //Move to the sixth point
-//    float x, y, z;
-//    std::tie(x, y, z) = probe_points[5];
-//    zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
-//    stream->printf("Moving to probe point 6: x%1.3f y%1.3f z%1.3f\n", x, y, z);
-//}
-
-void FiveAxisStrategy::preCAxisBeatingCorrection(StreamOutput *stream)
+void FiveAxisStrategy::linearCorrection(StreamOutput *stream)
 {
     //Save fifth point
     float position[3];
     THEROBOT->get_axis_position(position);
     actual_probe_points[4] = std::make_tuple(position[0], position[1], position[2]);
     stream->printf("Probe point 5 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
-
-    //Move to the six point
+    //
+    //    float x2, y2, z2;
+    //    float x3, y3, z3;
+    //    float x4, y4, z4;
+    //    float x5, y5, z5;
+    //    std::tie(x2, y2, z2) = actual_probe_points[1];
+    //    std::tie(x3, y3, z3) = actual_probe_points[2];
+    //    std::tie(x4, y4, z4) = actual_probe_points[3];
+    //    std::tie(x5, y5, z5) = actual_probe_points[4];
+    //
+    //    float matrix[3][3] = {
+    //        {x3 - x2, y3 - y2, z3 - z2},
+    //        {x4 - x3, y4 - y3, z4 - z3},
+    //        {x5 - x4, y5 - y4, z5 - z4}};
+    //
+    //    float commonDeterminant = matrixDeterminant(matrix[0][0], matrix[0][1], matrix[0][2],
+    //                                                matrix[1][0], matrix[1][1], matrix[1][2],
+    //                                                matrix[2][0], matrix[2][1], matrix[2][2]);
+    //    if (commonDeterminant == 0)
+    //    {
+    //        stream->printf("Error getting corrections, common determinant equals zero");
+    //        return;
+    //    }
+    //
+    //    float xxmatrix[3] = {x3 - x2,
+    //                         x4 - x3 - ((this->small_part_length + this->big_part_length) * cosf(calibration[B])),
+    //                         x5 - x4 + (2 * (this->small_part_length + this->big_part_length))};
+    //    float detXX = matrixDeterminant(xxmatrix[0], matrix[0][1], xxmatrix[2],
+    //                                    xxmatrix[1], matrix[1][1], matrix[1][2],
+    //                                    xxmatrix[2], matrix[2][1], matrix[2][2]);
+    //    float detXY = matrixDeterminant(matrix[0][0], xxmatrix[0], matrix[0][2],
+    //                                    matrix[1][0], xxmatrix[1], matrix[1][2],
+    //                                    matrix[2][0], xxmatrix[2], matrix[2][2]);
+    //    float detXZ = matrixDeterminant(matrix[0][0], matrix[0][1], xxmatrix[0],
+    //                                    matrix[1][0], matrix[1][1], xxmatrix[1],
+    //                                    matrix[2][0], matrix[2][1], xxmatrix[2]);
+    //    calibration[EXX] = detXX / commonDeterminant;
+    //    calibration[EXY] = detXY / commonDeterminant;
+    //    calibration[EXZ] = detXZ / commonDeterminant;
+    //    stream->printf("Calibration Kexx: %1.3f Kexy: %1.3f Kexz: %1.3f\n", calibration[EXX], calibration[EXY], calibration[EXZ]);
+    //
+    //    float yymatrix[3] = {y3 - y2 + (this->small_part_length + this->big_part_length),
+    //                         y4 - y3,
+    //                         y5 - y4};
+    //    float detYX = matrixDeterminant(yymatrix[0], matrix[0][1], matrix[0][2],
+    //                                    yymatrix[1], matrix[1][1], matrix[1][2],
+    //                                    yymatrix[2], matrix[2][1], matrix[2][2]);
+    //    float detYY = matrixDeterminant(matrix[0][0], yymatrix[0], matrix[0][2],
+    //                                    matrix[1][0], yymatrix[1], matrix[1][2],
+    //                                    matrix[2][0], yymatrix[2], matrix[2][2]);
+    //    float detYZ = matrixDeterminant(matrix[0][0], matrix[0][1], yymatrix[0],
+    //                                    matrix[1][0], matrix[1][1], yymatrix[1],
+    //                                    matrix[2][0], matrix[2][1], yymatrix[2]);
+    //    calibration[EYX] = detYX / commonDeterminant;
+    //    calibration[EYY] = detYY / commonDeterminant;
+    //    calibration[EYZ] = detYZ / commonDeterminant;
+    //    stream->printf("Calibration Keyx: %1.3f Keyy: %1.3f Keyz: %1.3f\n", calibration[EYX], calibration[EYY], calibration[EYZ]);
+    //
+    //    float zzmatrix[3] = {z3 - z2,
+    //                         z4 - z3 - (this->big_part_length + this->small_part_length) * sinf(calibration[B]),
+    //                         z5 - z4};
+    //    float detZX = matrixDeterminant(zzmatrix[0], matrix[0][1], matrix[0][2],
+    //                                    zzmatrix[1], matrix[1][1], matrix[1][2],
+    //                                    zzmatrix[2], matrix[2][1], matrix[2][2]);
+    //    float detZY = matrixDeterminant(matrix[0][0], zzmatrix[0], matrix[0][2],
+    //                                    matrix[1][0], zzmatrix[1], matrix[1][2],
+    //                                    matrix[2][0], zzmatrix[2], matrix[2][2]);
+    //    float detZZ = matrixDeterminant(matrix[0][0], matrix[0][1], zzmatrix[0],
+    //                                    matrix[1][0], matrix[1][1], zzmatrix[1],
+    //                                    matrix[2][0], matrix[2][1], zzmatrix[2]);
+    //    calibration[EZX] = detZX / commonDeterminant;
+    //    calibration[EZY] = detZY / commonDeterminant;
+    //    calibration[EZZ] = detZZ / commonDeterminant;
+    //    stream->printf("Calibration Kezx: %1.3f Kezy: %1.3f Kezz: %1.3f\n", calibration[EZX], calibration[EZY], calibration[EZZ]);
+    //
+    //    //setSecondAdjustFunction(true);
+    //
+    //Move to the sixth point
     float x, y, z;
     std::tie(x, y, z) = probe_points[5];
     zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
     stream->printf("Moving to probe point 6: x%1.3f y%1.3f z%1.3f\n", x, y, z);
-
-    Gcode offset("G0 C180 F1200", &(StreamOutput::NullStream));
-    THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
 }
 
-void FiveAxisStrategy::cAxisBeatingCorrection(StreamOutput *stream)
+void FiveAxisStrategy::preCAxisBeatingCorrection(StreamOutput *stream)
 {
     //Save six point
     float position[3];
@@ -585,22 +551,40 @@ void FiveAxisStrategy::cAxisBeatingCorrection(StreamOutput *stream)
     actual_probe_points[5] = std::make_tuple(position[0], position[1], position[2]);
     stream->printf("Probe point 6 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
 
-    float x5, y5, z5;
-    float x6, y6, z6;
-    std::tie(x5, y5, z5) = actual_probe_points[4];
-    std::tie(x6, y6, z6) = actual_probe_points[5];
+    Gcode offset("G0 C180 F1200", &(StreamOutput::NullStream));
+    THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
 
-    calibration[XOC] = (abs(x6 + x5) / 2) - x6;
-    calibration[YOC] = (abs(y6 + y5) / 2) - y6;
-    calibration[ZOC] = (abs(z6 + z5) / 2) - z6;
-
-    setSecondAdjustFunction(true);
-
-    //Move to the seventh point
+    //Move to the seven point
     float x, y, z;
     std::tie(x, y, z) = probe_points[6];
     zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
     stream->printf("Moving to probe point 7: x%1.3f y%1.3f z%1.3f\n", x, y, z);
+}
+
+void FiveAxisStrategy::cAxisBeatingCorrection(StreamOutput *stream)
+{
+    //Save seven point
+    float position[3];
+    THEROBOT->get_axis_position(position);
+    actual_probe_points[6] = std::make_tuple(position[0], position[1], position[2]);
+    stream->printf("Probe point 7 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
+
+    float x6, y6, z6;
+    float x7, y7, z7;
+    std::tie(x6, y6, z6) = actual_probe_points[5];
+    std::tie(x7, y7, z7) = actual_probe_points[6];
+
+    calibration[XOC] = (abs(x7 + x6) / 2) - x7;
+    calibration[YOC] = (abs(y7 + y6) / 2) - y7;
+    calibration[ZOC] = (abs(z7 + z6) / 2) - z7;
+
+    setSecondAdjustFunction(true);
+
+    //Move to the eight point
+    float x, y, z;
+    std::tie(x, y, z) = probe_points[7];
+    zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
+    stream->printf("Moving to probe point 8: x%1.3f y%1.3f z%1.3f\n", x, y, z);
 
     Gcode offset("G0 C270 F1200", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
@@ -608,39 +592,39 @@ void FiveAxisStrategy::cAxisBeatingCorrection(StreamOutput *stream)
 
 void FiveAxisStrategy::preAAxisBeatingCorrection(StreamOutput *stream)
 {
-    //Save eseventh point
-    float position[3];
-    THEROBOT->get_axis_position(position);
-    actual_probe_points[6] = std::make_tuple(position[0], position[1], position[2]);
-    stream->printf("Probe point 7 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
-
-    zprobe->coordinated_move(position[0], position[1], position[2] + 40, zprobe->getFastFeedrate());
-
-    Gcode offset("G0 A90 F1200", &(StreamOutput::NullStream));
-    THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
-
-    //Move to the eight point
-    float x, y, z;
-    std::tie(x, y, z) = probe_points[7];
-    zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
-    stream->printf("Moving to probe point 8: x%1.3f y%1.3f z%1.3f\n", x, y, z);
-}
-
-void FiveAxisStrategy::aAxisBeatingCorrection(StreamOutput *stream)
-{
     //Save eight point
     float position[3];
     THEROBOT->get_axis_position(position);
     actual_probe_points[7] = std::make_tuple(position[0], position[1], position[2]);
     stream->printf("Probe point 8 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
 
+    zprobe->coordinated_move(position[0], position[1], position[2] + 40, zprobe->getFastFeedrate());
+
+    Gcode offset("G0 A90 F1200", &(StreamOutput::NullStream));
+    THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
+
+    //Move to the nine point
+    float x, y, z;
+    std::tie(x, y, z) = probe_points[8];
+    zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
+    stream->printf("Moving to probe point 9: x%1.3f y%1.3f z%1.3f\n", x, y, z);
+}
+
+void FiveAxisStrategy::aAxisBeatingCorrection(StreamOutput *stream)
+{
+    //Save nine point
+    float position[3];
+    THEROBOT->get_axis_position(position);
+    actual_probe_points[8] = std::make_tuple(position[0], position[1], position[2]);
+    stream->printf("Probe point 9 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
+
     float x8, y8, z8;
-    float x7, y7, z7;
+    float x9, y9, z9;
     std::tie(x8, y8, z8) = actual_probe_points[7];
-    std::tie(x7, y7, z7) = actual_probe_points[6];
-    calibration[EXA] = (x8 - x7) / 90;
-    calibration[EYA] = (y8 - y7) / 90;
-    calibration[EZA] = (z8 - z7) / 90;
+    std::tie(x9, y9, z9) = actual_probe_points[8];
+    calibration[EXA] = (x9 - x8) / 90;
+    calibration[EYA] = (y9 - y8) / 90;
+    calibration[EZA] = (z9 - z8) / 90;
 
     setFinalAdjustFunction(true);
 

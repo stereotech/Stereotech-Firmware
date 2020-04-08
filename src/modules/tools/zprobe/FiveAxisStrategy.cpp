@@ -96,8 +96,8 @@ bool FiveAxisStrategy::handleConfig()
         probe_points[6] = parseXYZ(p7.c_str());
     if (!p8.empty())
         probe_points[7] = parseXYZ(p8.c_str());
-    //if (!p9.empty())
-    //    probe_points[8] = parseXYZ(p9.c_str());
+    if (!p9.empty())
+        probe_points[8] = parseXYZ(p9.c_str());
     //if (!p10.empty())
     //    probe_points[9] = parseXYZ(p10.c_str());
 
@@ -105,7 +105,7 @@ bool FiveAxisStrategy::handleConfig()
     this->small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length)->by_default(10.0F)->as_number();
     this->home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, home_checksum)->by_default(true)->as_bool();
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 9; i++)
     {
         actual_probe_points[i] = std::make_tuple(0, 0, 0);
     }

@@ -1,7 +1,7 @@
 ﻿#Smoothieboard configuration file, see http://smoothieware.org/configuring-smoothie
 #NOTE Lines must not exceed 132 characters, and '#' characters mean what follows is ignored
 # Robot module configurations : general handling of movement G-codes and slicing into moves
-planner_queue_size 32
+planner_queue_size 64
 
 arm_solution                                 corexy
 
@@ -21,7 +21,7 @@ beta_steps_per_mm                            640               # Steps per mm fo
 gamma_steps_per_mm                           800             # Steps per mm for gamma ( Z ) stepper
 delta_steps_per_mm                           26.66667
 epsilon_steps_per_mm                         26.66667
-zeta_steps_per_mm                            26.66667
+zeta_steps_per_mm                            160
 
 # Planner module configuration : Look-ahead and acceleration configuration
 # See http://smoothieware.org/motion-control

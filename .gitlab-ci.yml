@@ -17,8 +17,6 @@ run-build:
   artifacts:
     paths:
       - LPC1768/
-  only:
-    - develop
 
 run-deploy:
   image: python:latest

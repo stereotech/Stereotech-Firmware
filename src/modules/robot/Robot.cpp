@@ -1030,7 +1030,7 @@ void Robot::on_gcode_received(void *argument)
                 char axis = (i <= Z_AXIS ? 'X' + i : 'A' + (i - A_AXIS));
                 if (gcode->has_letter(axis))
                 {
-                    babysteps[i] = this->to_millimeters(gcode->get_value(axis)));
+                    babysteps[i] = this->to_millimeters(gcode->get_value(axis));
                     //actuators[i]->change_steps_per_mm(this->to_millimeters(gcode->get_value(axis)));
                 }
                 gcode->stream->printf("%c:%f ", axis, babysteps[i]);

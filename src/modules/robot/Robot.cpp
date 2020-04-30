@@ -99,7 +99,6 @@
 #define zmax_checksum CHECKSUM("z_max")
 
 #define PI 3.14159265358979323846F // force to be float, do not use M_PI
-#define DEG_TO_RAD 0.01745329251F
 
 //#define DEBUG_PRINTF THEKERNEL->streams->printf
 #define DEBUG_PRINTF(...)
@@ -1471,9 +1470,10 @@ void Robot::reset_position_from_current_actuator_position()
 
 void Robot::calculate_workpiece_offset(const float target[])
 {
-    float x = -(1 - cos(DEG_TO_RAD * target[A_AXIS])) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
-    float y = -sin(DEG_TO_RAD * target[A_AXIS]) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
-    float z = -(1 - cos(DEG_TO_RAD * target[A_AXIS])) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+    float deg_to_rad = 0.01745329251F;
+    float x = -(1 - cos(deg_to_rad * target[A_AXIS])) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
+    float y = -sin(deg_to_rad * target[A_AXIS]) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
+    float z = -(1 - cos(deg_to_rad * target[A_AXIS])) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
     workpiece_offset = wcs_t(x, y, z);
 }
 

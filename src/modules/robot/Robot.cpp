@@ -99,6 +99,7 @@
 #define zmax_checksum CHECKSUM("z_max")
 
 #define PI 3.14159265358979323846F // force to be float, do not use M_PI
+#define DEG_TO_RAD 0.01745329251F
 
 //#define DEBUG_PRINTF THEKERNEL->streams->printf
 #define DEBUG_PRINTF(...)
@@ -1313,12 +1314,10 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 #endif
 
-    if (this->use_workpiece_offset)
+    if (this->use_workpiece_offset && target[A_AXIS] != machine_position[A_AXIS])
     {
-        if (target[A_AXIS] != machine_position[A_AXIS])
-        {
-            this->calculate_workpiece_offset(target);
-        }
+
+        this->calculate_workpiece_offset(target);
         target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);
         target[Y_AXIS] += std::get<Y_AXIS>(workpiece_offset);
         target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
@@ -1472,9 +1471,9 @@ void Robot::reset_position_from_current_actuator_position()
 
 void Robot::calculate_workpiece_offset(const float target[])
 {
-    float x = -(1 - cos(target[A_AXIS])) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
-    float y = -sin(target[A_AXIS]) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
-    float z = -(1 - cos(target[A_AXIS])) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+    float x = -(1 - cos(DEG_TO_RAD * target[A_AXIS])) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
+    float y = -sin(DEG_TO_RAD * target[A_AXIS]) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
+    float z = -(1 - cos(DEG_TO_RAD * target[A_AXIS])) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
     workpiece_offset = wcs_t(x, y, z);
 }
 

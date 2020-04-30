@@ -1471,9 +1471,10 @@ void Robot::reset_position_from_current_actuator_position()
 void Robot::calculate_workpiece_offset(const float target[])
 {
     float deg_to_rad = 0.01745329251F;
-    float x = -(1 - cos(deg_to_rad * target[A_AXIS])) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
-    float y = -sin(deg_to_rad * target[A_AXIS]) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
-    float z = -(1 - cos(deg_to_rad * target[A_AXIS])) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+    float delta_a = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]);
+    float x = -(1 - cos(delta_a)) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
+    float y = -sin(delta_a) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
+    float z = -(1 - cos(delta_a)) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
     workpiece_offset = wcs_t(x, y, z);
 }
 

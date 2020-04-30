@@ -117,6 +117,8 @@ private:
     void process_move(Gcode *gcode, enum MOTION_MODE_T);
     bool is_homed(uint8_t i) const;
 
+    void calculate_workpiece_offset(const float target[]);
+
     float theta(float x, float y);
     void select_plane(uint8_t axis_0, uint8_t axis_1, uint8_t axis_2);
     void clearToolOffset();

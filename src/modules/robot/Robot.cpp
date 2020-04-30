@@ -122,6 +122,7 @@ Robot::Robot()
     this->get_e_scale_fnc = nullptr;
     this->wcs_offsets.fill(wcs_t(0.0F, 0.0F, 0.0F));
     this->g92_offset = wcs_t(0.0F, 0.0F, 0.0F);
+    this->workpiece_offset = wcs_t(0.0F, 0.0F, 0.0F);
     this->next_command_is_MCS = false;
     this->disable_segmentation = false;
     this->disable_arm_solution = false;
@@ -641,6 +642,7 @@ void Robot::on_gcode_received(void *argument)
             break;
         case 43:
             this->use_workpiece_offset = true;
+            this->calculate_workpiece_offset(machine_position);
             break;
 
         case 54:
@@ -1315,9 +1317,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     {
         if (target[A_AXIS] != machine_position[A_AXIS])
         {
-            float x = -(1 - cos(target[A_AXIS])) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
-            float y = -sin(target[A_AXIS]) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
-            float z = -(1 - cos(target[A_AXIS])) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+            this->calculate_workpiece_offset(target);
         }
         target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);
         target[Y_AXIS] += std::get<Y_AXIS>(workpiece_offset);
@@ -1468,6 +1468,14 @@ void Robot::reset_position_from_current_actuator_position()
         actuators[i]->change_last_milestone(actuator_pos[i]); // this updates the last_milestone in the actuator
     }
 #endif
+}
+
+void Robot::calculate_workpiece_offset(const float target[])
+{
+    float x = -(1 - cos(target[A_AXIS])) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
+    float y = -sin(target[A_AXIS]) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
+    float z = -(1 - cos(target[A_AXIS])) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+    workpiece_offset = wcs_t(x, y, z);
 }
 
 // Convert target (in machine coordinates) to machine_position, then convert to actuator position and append this to the planner

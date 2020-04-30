@@ -636,6 +636,13 @@ void Robot::on_gcode_received(void *argument)
             this->inch_mode = false;
             break;
 
+        case 40:
+            this->use_workpiece_offset = false;
+            break;
+        case 43:
+            this->use_workpiece_offset = true;
+            break;
+
         case 54:
         case 55:
         case 56:
@@ -1303,6 +1310,19 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         }
     }
 #endif
+
+    if (this->use_workpiece_offset)
+    {
+        if (target[A_AXIS] != machine_position[A_AXIS])
+        {
+            float x = -(1 - cos(target[A_AXIS])) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
+            float y = -sin(target[A_AXIS]) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
+            float z = -(1 - cos(target[A_AXIS])) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+        }
+        target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);
+        target[Y_AXIS] += std::get<Y_AXIS>(workpiece_offset);
+        target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
+    }
 
     if (gcode->has_letter('F'))
     {

@@ -96,6 +96,7 @@ public:
         uint8_t plane_axis_0 : 2; // Current plane ( XY, XZ, YZ )
         uint8_t plane_axis_1 : 2;
         uint8_t plane_axis_2 : 2;
+        bool use_workpiece_offset : 1;
     };
 
 private:
@@ -125,7 +126,10 @@ private:
     uint8_t current_wcs{0};                 // 0 means G54 is enabled this is persistent once saved with M500
     wcs_t g92_offset;
     wcs_t tool_offset; // used for multiple extruders, sets the tool offset for the current extruder applied first
-    std::tuple<float, float, float, uint8_t> last_probe_position{0, 0, 0, 0};
+    wcs_t workpiece_offset;
+
+    std::tuple<float, float, float, uint8_t>
+        last_probe_position{0, 0, 0, 0};
 
     using saved_state_t = std::tuple<float, float, bool, bool, bool, uint8_t>; // save current feedrate and absolute mode, e absolute mode, inch mode, current_wcs
     std::stack<saved_state_t> state_stack;                                     // saves state from M120

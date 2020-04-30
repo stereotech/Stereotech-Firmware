@@ -1472,9 +1472,9 @@ void Robot::calculate_workpiece_offset(const float target[])
 {
     float deg_to_rad = 0.01745329251F;
     float delta_a = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]);
-    float x = -(1 - cos(delta_a)) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
-    float y = -sin(delta_a) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
-    float z = -(1 - cos(delta_a)) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+    float x = -sin(delta_a) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
+    float y = -cos(delta_a + PI / 2) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
+    float z = -cos(delta_a + PI / 2) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
     workpiece_offset = wcs_t(x, y, z);
 }
 

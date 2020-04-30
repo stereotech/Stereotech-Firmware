@@ -1478,9 +1478,9 @@ void Robot::calculate_workpiece_offset(const float target[])
         delta_sign = delta_a / abs(delta_a);
     }
 
-    float x = delta_sign * (1 - cos(delta_a)) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
+    float x = -delta_sign * (1 - cos(delta_a)) * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
     float y = -sin(delta_a) * (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
-    float z = delta_sign * (1 - cos(delta_a)) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+    float z = -delta_sign * (1 - cos(delta_a)) * (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
     workpiece_offset = wcs_t(x, y, z);
 }
 

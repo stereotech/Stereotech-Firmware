@@ -41,18 +41,26 @@ void ToolManager::on_module_loaded()
 
 void ToolManager::on_gcode_received(void *argument)
 {
-    Gcode *gcode = static_cast<Gcode*>(argument);
+    Gcode *gcode = static_cast<Gcode *>(argument);
 
-    if( gcode->has_letter('T') ) {
+    if (gcode->has_letter('T'))
+    {
+        if (gcode->has_m && (gcode->m == 104 || gcode->m == 109))
+        {
+            return;
+        }
         int new_tool = gcode->get_value('T');
-        if(new_tool >= (int)this->tools.size() || new_tool < 0) {
+        if (new_tool >= (int)this->tools.size() || new_tool < 0)
+        {
             // invalid tool
             char buf[32]; // should be big enough for any status
             int n = snprintf(buf, sizeof(buf), "T%d invalid tool ", new_tool);
             gcode->txt_after_ok.append(buf, n);
-
-        } else {
-            if(new_tool != this->active_tool) {
+        }
+        else
+        {
+            if (new_tool != this->active_tool)
+            {
                 // We must wait for an empty queue before we can disable the current extruder
                 THEKERNEL->conveyor->wait_for_idle();
                 this->tools[active_tool]->deselect();
@@ -68,41 +76,48 @@ void ToolManager::on_gcode_received(void *argument)
     }
 }
 
-void ToolManager::on_get_public_data(void* argument)
+void ToolManager::on_get_public_data(void *argument)
 {
-    PublicDataRequest* pdr = static_cast<PublicDataRequest*>(argument);
+    PublicDataRequest *pdr = static_cast<PublicDataRequest *>(argument);
 
-    if(!pdr->starts_with(tool_manager_checksum)) return;
+    if (!pdr->starts_with(tool_manager_checksum))
+        return;
 
-    if(pdr->second_element_is(is_active_tool_checksum)) {
+    if (pdr->second_element_is(is_active_tool_checksum))
+    {
 
         // check that we control the given tool
         bool managed = false;
-        for(auto t : tools) {
+        for (auto t : tools)
+        {
             uint16_t n = t->get_name();
-            if(pdr->third_element_is(n)) {
+            if (pdr->third_element_is(n))
+            {
                 managed = true;
                 break;
             }
         }
 
         // we are not managing this tool so do not answer
-        if(!managed) return;
+        if (!managed)
+            return;
 
         pdr->set_data_ptr(&this->current_tool_name);
         pdr->set_taken();
-
-    }else if(pdr->second_element_is(get_active_tool_checksum)) {
+    }
+    else if (pdr->second_element_is(get_active_tool_checksum))
+    {
         pdr->set_data_ptr(&this->active_tool);
         pdr->set_taken();
     }
 }
 
-void ToolManager::on_set_public_data(void* argument)
+void ToolManager::on_set_public_data(void *argument)
 {
-    PublicDataRequest* pdr = static_cast<PublicDataRequest*>(argument);
+    PublicDataRequest *pdr = static_cast<PublicDataRequest *>(argument);
 
-    if(!pdr->starts_with(tool_manager_checksum)) return;
+    if (!pdr->starts_with(tool_manager_checksum))
+        return;
 
     // ok this is targeted at us, so change tools
     //uint16_t tool_name= *static_cast<float*>(pdr->get_data_ptr());
@@ -111,19 +126,19 @@ void ToolManager::on_set_public_data(void* argument)
 }
 
 // Add a tool to the tool list
-void ToolManager::add_tool(Tool* tool_to_add)
+void ToolManager::add_tool(Tool *tool_to_add)
 {
-    if(this->tools.size() == 0) {
+    if (this->tools.size() == 0)
+    {
         tool_to_add->select();
         this->current_tool_name = tool_to_add->get_name();
         //send new_tool_offsets to robot
         const float *new_tool_offset = tool_to_add->get_offset();
         THEROBOT->setToolOffset(new_tool_offset);
-    } else {
+    }
+    else
+    {
         tool_to_add->deselect();
     }
-    this->tools.push_back( tool_to_add );
+    this->tools.push_back(tool_to_add);
 }
-
-
-

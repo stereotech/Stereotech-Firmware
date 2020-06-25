@@ -641,6 +641,10 @@ void Robot::on_gcode_received(void *argument)
             this->use_workpiece_offset = false;
             break;
         case 43:
+            if (if (gcode->subcode == 1))
+            {
+                gcode->stream->printf("Current workpiece offset is: X:%1.4f Y:%1.4f Z:%1.4f", std::get<X_AXIS>(workpiece_offset), std::get<Y_AXIS>(workpiece_offset), std::get<Z_AXIS>(workpiece_offset));
+            }
             this->calculate_workpiece_offset(machine_position);
             this->use_workpiece_offset = true;
             break;

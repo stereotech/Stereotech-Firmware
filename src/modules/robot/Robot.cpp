@@ -1480,17 +1480,20 @@ void Robot::reset_position_from_current_actuator_position()
 void Robot::calculate_workpiece_offset(const float target[])
 {
     float deg_to_rad = 0.01745329251F;
-    float a_dir = 1;
-    if (target[A_AXIS] - machine_position[A_AXIS] < 0)
+    float delta_a = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]);
+    float delta_sign = 1;
+    if (delta_a != 0)
     {
-        a_dir = -1;
+        delta_sign = delta_a / abs(delta_a);
     }
-    float a = deg_to_rad * (target[A_AXIS]);
-    float delta_y = fabs(std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
-    float delta_z = fabs(std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
-    float y = -a_dir * delta_y * sin(a);
-    float z = -a_dir * delta_z * (1 - cos(a));
-    workpiece_offset = wcs_t(0.0F, y, z);
+    float cos_a = 1 - cos(delta_a);
+    float x_compensation = fabs(std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
+    float y_compensation = fabs(std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
+    float z_compensation = fabs(std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+    float x = -delta_sign * cos_a * x_compensation;
+    float y = -sin(delta_a) * y_compensation;
+    float z = -delta_sign * cos_a * z_compensation;
+    workpiece_offset = wcs_t(x, y, z);
 }
 
 // Convert target (in machine coordinates) to machine_position, then convert to actuator position and append this to the planner

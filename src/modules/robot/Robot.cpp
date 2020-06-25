@@ -643,7 +643,7 @@ void Robot::on_gcode_received(void *argument)
         case 43:
             if (gcode->subcode == 1)
             {
-                gcode->stream->printf("Current workpiece offset is: X:%1.4f Y:%1.4f Z:%1.4f", std::get<X_AXIS>(workpiece_offset), std::get<Y_AXIS>(workpiece_offset), std::get<Z_AXIS>(workpiece_offset));
+                gcode->stream->printf("Current workpiece offset is: X:%1.4f Y:%1.4f Z:%1.4f\n", std::get<X_AXIS>(workpiece_offset), std::get<Y_AXIS>(workpiece_offset), std::get<Z_AXIS>(workpiece_offset));
             }
             else
             {
@@ -1322,10 +1322,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
     if (this->use_workpiece_offset)
     {
-        if (target[A_AXIS] != machine_position[A_AXIS])
-        {
-            this->calculate_workpiece_offset(target);
-        }
+        this->calculate_workpiece_offset(target);
         target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);
         target[Y_AXIS] += std::get<Y_AXIS>(workpiece_offset);
         target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);

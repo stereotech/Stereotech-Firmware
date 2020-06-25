@@ -641,8 +641,8 @@ void Robot::on_gcode_received(void *argument)
             this->use_workpiece_offset = false;
             break;
         case 43:
-            this->use_workpiece_offset = true;
             this->calculate_workpiece_offset(machine_position);
+            this->use_workpiece_offset = true;
             break;
 
         case 54:
@@ -1313,10 +1313,12 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 #endif
 
-    if (this->use_workpiece_offset && target[A_AXIS] != machine_position[A_AXIS])
+    if (this->use_workpiece_offset)
     {
-
-        this->calculate_workpiece_offset(target);
+        if (target[A_AXIS] != machine_position[A_AXIS])
+        {
+            this->calculate_workpiece_offset(target);
+        }
         target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);
         target[Y_AXIS] += std::get<Y_AXIS>(workpiece_offset);
         target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
@@ -1471,18 +1473,12 @@ void Robot::reset_position_from_current_actuator_position()
 void Robot::calculate_workpiece_offset(const float target[])
 {
     float deg_to_rad = 0.01745329251F;
-    float delta_a = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]);
-    float delta_sign = 1;
-    if (delta_a != 0)
-    {
-        delta_sign = delta_a / abs(delta_a);
-    }
-    float cos_a = 1 - cos(delta_a);
-    float full_compensation = (std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2])) + (std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
-    float x = -delta_sign * cos_a * (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2]));
-    float y = -sin(delta_a) * full_compensation;
-    float z = -delta_sign * cos_a * full_compensation;
-    workpiece_offset = wcs_t(x, y, z);
+    float a = deg_to_rad * (target[A_AXIS]);
+    float delta_y = abs(std::get<Y_AXIS>(wcs_offsets[1]) - std::get<Y_AXIS>(wcs_offsets[2]));
+    float delta_z = abs(std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+    float y = -delta_y * sin(a);
+    float z = -delta_z * (1 - cos(a));
+    workpiece_offset = wcs_t(0.0F, y, z);
 }
 
 // Convert target (in machine coordinates) to machine_position, then convert to actuator position and append this to the planner

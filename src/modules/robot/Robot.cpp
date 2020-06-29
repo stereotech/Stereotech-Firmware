@@ -1490,7 +1490,7 @@ void Robot::calculate_workpiece_offset(const float target[])
     float x = -delta_sign * cos_a * x_compensation;
     float y = -sin(delta_a) * y_compensation;
     float z = -delta_sign * cos_a * z_compensation;
-    workpiece_offset = wcs_t(x, y, z);
+    this->workpiece_offset = wcs_t(x, y, z);
 }
 
 // Convert target (in machine coordinates) to machine_position, then convert to actuator position and append this to the planner

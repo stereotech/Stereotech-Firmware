@@ -1,4 +1,5 @@
-﻿#Smoothieboard configuration file, see http://smoothieware.org/configuring-smoothie
+﻿#STE530-19-20-config
+#Smoothieboard configuration file, see http://smoothieware.org/configuring-smoothie
 #NOTE Lines must not exceed 132 characters, and '#' characters mean what follows is ignored
 # Robot module configurations : general handling of movement G-codes and slicing into moves
 planner_queue_size 32

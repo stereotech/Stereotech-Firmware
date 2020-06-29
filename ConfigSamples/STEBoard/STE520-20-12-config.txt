@@ -1,4 +1,5 @@
-﻿#Smoothieboard configuration file, see http://smoothieware.org/configuring-smoothie
+﻿#STE520-20-12-config
+#Smoothieboard configuration file, see http://smoothieware.org/configuring-smoothie
 #NOTE Lines must not exceed 132 characters, and '#' characters mean what follows is ignored
 # Robot module configurations : general handling of movement G-codes and slicing into moves
 planner_queue_size 32
@@ -175,6 +176,7 @@ switch.bottomfan.enable                            true             # Enable thi
 switch.bottomfan.input_on_command                  M106             # Command that will turn this switch on
 switch.bottomfan.input_off_command                 M107             # Command that will turn this switch off
 switch.bottomfan.subcode                            3
+switch.bottomfan.startup_value                     255
 switch.bottomfan.output_pin                        2.6            # Pin this module controls
 switch.bottomfan.output_type                       pwm              # PWM output settable with S parameter in the input_on_comand
 switch.bottomfan.max_pwm                           255              # Set max pwm for the pin default is 255
@@ -195,7 +197,7 @@ temperatureswitch.heatsink.heatup_poll         5              # poll heatup at 1
 temperatureswitch.heatsink.cooldown_poll       60              # poll cooldown at 60 sec intervals
 temperatureswitch.heatsink.inverted              false          #
 
-temperatureswitch.bottom.enable              true            #
+temperatureswitch.bottom.enable              false            #
 temperatureswitch.bottom.designator          T               # first character of the temperature control designator to use as the temperature sensor to monitor
 temperatureswitch.bottom.switch              bottomfan     # select which switch to use, matches the name of the defined switch
 temperatureswitch.bottom.threshold_temp      40.0            # temperature to turn on (if rising) or off the switch

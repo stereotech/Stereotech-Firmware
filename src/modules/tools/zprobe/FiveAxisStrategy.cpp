@@ -383,7 +383,8 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float y1, y2, x1, x2;
     std::tie(x1, y1, z1) = actual_probe_points[0];
     std::tie(x2, y2, z2) = actual_probe_points[1];
-    c_offset = -57.2958 * (1 / atanf((y2 - y1) / (x2 - x1))) / 3;
+    c_offset = -57.2958 * (1 / atanf((y2 - y1) / (x2 - x1)));
+    c_offset /= 3.0;
 
     char *cmdc = new char[32];
     if (!isnan(c_offset))

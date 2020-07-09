@@ -383,7 +383,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float y1, y2, x1, x2;
     std::tie(x1, y1, z1) = actual_probe_points[0];
     std::tie(x2, y2, z2) = actual_probe_points[1];
-    c_offset = -57.2958 * (1 / atanf((y2 - y1) / (x2 - x1)));
+    c_offset = -57.2958 * (1 / atanf((y2 - y1) / (x2 - x1))) / 3;
 
     char *cmdc = new char[32];
     if (!isnan(c_offset))
@@ -551,7 +551,7 @@ void FiveAxisStrategy::preCAxisBeatingCorrection(StreamOutput *stream)
     actual_probe_points[5] = std::make_tuple(position[0], position[1], position[2]);
     stream->printf("Probe point 6 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
 
-    Gcode offset("G0 C180 F1200", &(StreamOutput::NullStream));
+    Gcode offset("G0 C60 F1200", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
 
     //Move to the seven point
@@ -586,7 +586,7 @@ void FiveAxisStrategy::cAxisBeatingCorrection(StreamOutput *stream)
     zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
     stream->printf("Moving to probe point 8: x%1.3f y%1.3f z%1.3f\n", x, y, z);
 
-    Gcode offset("G0 C270 F1200", &(StreamOutput::NullStream));
+    Gcode offset("G0 C90 F1200", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
 }
 

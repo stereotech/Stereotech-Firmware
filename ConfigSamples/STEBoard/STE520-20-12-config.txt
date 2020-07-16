@@ -114,7 +114,7 @@ temperature_control.hotend.max_pwm           170
 # See http://smoothieware.org/temperaturecontrol#runaway
 temperature_control.hotend.runaway_heating_timeout      2040  # How long it can take to heat up, max is 2040 seconds.
 temperature_control.hotend.runaway_cooling_timeout      2040  # How long it can take to cool down if temp is set lower, max is 2040 seconds
-temperature_control.hotend.runaway_range                50   # How far from the set temperature it can wander, max setting is 63°C
+temperature_control.hotend.runaway_range                63   # How far from the set temperature it can wander, max setting is 63°C
 
 # PID configuration 
 # See http://smoothieware.org/temperaturecontrol#pid
@@ -132,6 +132,11 @@ temperature_control.hotend2.set_m_code        104            # M-code to set the
 temperature_control.hotend2.set_and_wait_m_code 109          # M-code to set-and-wait for this module
 temperature_control.hotend2.designator        T1             # Designator letter for this module
 temperature_control.hotend2.max_pwm           170
+
+temperature_control.hotend2.runaway_heating_timeout      2040  # How long it can take to heat up, max is 2040 seconds.
+temperature_control.hotend2.runaway_cooling_timeout      2040  # How long it can take to cool down if temp is set lower, max is 2040 seconds
+temperature_control.hotend2.runaway_range                63   # How far from the set temperature it can wander, max setting is 63°C
+
 
 temperature_control.hotend2.p_factor          17.1           # P ( proportional ) factor
 temperature_control.hotend2.i_factor          0.827          # I ( integral ) factor

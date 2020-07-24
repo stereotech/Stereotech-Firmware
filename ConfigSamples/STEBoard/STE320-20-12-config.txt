@@ -118,9 +118,9 @@ temperature_control.hotend.runaway_range                50   # How far from the 
 
 # PID configuration 
 # See http://smoothieware.org/temperaturecontrol#pid
-temperature_control.hotend.p_factor         17.2             # P ( proportional ) factor
-temperature_control.hotend.i_factor         0.827            # I ( integral ) factor
-temperature_control.hotend.d_factor         89               # D ( derivative ) factor
+temperature_control.hotend.p_factor         25             # P ( proportional ) factor
+temperature_control.hotend.i_factor         0.5            # I ( integral ) factor
+temperature_control.hotend.d_factor         30             # D ( derivative ) factor
 
 # Second hotend configuration
 temperature_control.hotend2.enable            true           # Whether to activate this ( "hotend" ) module at all.
@@ -133,9 +133,9 @@ temperature_control.hotend2.set_and_wait_m_code 109          # M-code to set-and
 temperature_control.hotend2.designator        T1             # Designator letter for this module
 temperature_control.hotend2.max_pwm           170
 
-temperature_control.hotend2.p_factor          17.1           # P ( proportional ) factor
-temperature_control.hotend2.i_factor          0.827          # I ( integral ) factor
-temperature_control.hotend2.d_factor          89             # D ( derivative ) factor
+temperature_control.hotend2.p_factor        25             # P ( proportional ) factor
+temperature_control.hotend2.i_factor        0.5            # I ( integral ) factor
+temperature_control.hotend2.d_factor        30             # D ( derivative ) factor
 
 temperature_control.bed.enable               true             # Whether to activate this ( "hotend" ) module at all.
 temperature_control.bed.thermistor_pin       0.24             # Pin for the thermistor to read
@@ -148,9 +148,9 @@ temperature_control.bed.max_pwm              255
 temperature_control.bed.bang_bang            false            # set to true to use bang bang control rather than PID
 temperature_control.bed.hysteresis            0.5              # set to the temperature in degrees C to use as hysteresis when
 
-temperature_control.bed.p_factor          182.2           # P ( proportional ) factor
-temperature_control.bed.i_factor          8.966          # I ( integral ) factor
-temperature_control.bed.d_factor          926             # D ( derivative ) factor
+temperature_control.bed.p_factor            250            # P ( proportional ) factor
+temperature_control.bed.i_factor            0.5            # I ( integral ) factor
+temperature_control.bed.d_factor            75             # D ( derivative ) factor
 
 ## Switch modules
 # See http://smoothieware.org/switch

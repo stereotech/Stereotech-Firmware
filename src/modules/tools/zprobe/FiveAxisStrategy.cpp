@@ -172,7 +172,7 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
         }
         else if (gcode->m == 500 || gcode->m == 503)
         {
-            gcode->stream->printf(";Home: %s, big: %1.3f, small: %1.3f\n", home, big_part_length, small_part_length);
+            gcode->stream->printf(";Home: %s, %s, big: %1.3f, small: %1.3f\n", home ? "true" : "false", this->home ? "true" : "false", big_part_length, small_part_length);
             gcode->stream->printf(";Load saved calibration\nM375\n");
             return true;
         }

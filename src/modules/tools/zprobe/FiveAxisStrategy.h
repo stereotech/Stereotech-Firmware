@@ -1,5 +1,5 @@
-#ifndef _5AXISSTRATEGY
-#define _5AXISSTRATEGY
+#ifndef _FIVEAXISSTRATEGY
+#define _FIVEAXISSTRATEGY
 
 #include "LevelingStrategy.h"
 

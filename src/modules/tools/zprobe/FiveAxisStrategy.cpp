@@ -30,7 +30,7 @@
 #define probe_point_7_checksum CHECKSUM("point7")
 #define probe_point_8_checksum CHECKSUM("point8")
 #define probe_point_9_checksum CHECKSUM("point9")
-//#define probe_point_10_checksum CHECKSUM("point10")
+
 #define probe_device_big_part_length CHECKSUM("big_part_length")
 #define probe_device_small_part_length CHECKSUM("small_part_length")
 #define home_checksum CHECKSUM("home_first")

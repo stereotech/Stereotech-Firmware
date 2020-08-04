@@ -43,11 +43,9 @@ private:
 
   std::tuple<float, float, float> probe_points[8];
   std::tuple<float, float, float> actual_probe_points[8];
-  struct {
-    float big_part_length;
-    float small_part_length;
-    bool home:1;
-  };
+  float big_part_length;
+  float small_part_length;
+  bool home;
   float calibration[10];
   StreamOutput *stream;
 

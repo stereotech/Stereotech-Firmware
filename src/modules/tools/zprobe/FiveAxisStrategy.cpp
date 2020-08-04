@@ -269,7 +269,7 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
         THEKERNEL->conveyor->wait_for_idle();
         setFirstAdjustFunction(false);
 
-        if (this->home)
+        if (home)
         {
             zprobe->home();
         }

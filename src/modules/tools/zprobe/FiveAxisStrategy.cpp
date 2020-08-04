@@ -359,7 +359,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float z1, z2;
     z1 = std::get<2>(actual_probe_points[0]);
     z2 = std::get<2>(actual_probe_points[1]);
-    a_offset = 57.2958 * asinf((z1 - z2) / (this->big_part_length + this->small_part_length));
+    a_offset = 57.2958 * asinf((z2 - z1) / (this->big_part_length + this->small_part_length));
 
     zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate());
 
@@ -383,7 +383,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float y1, y2, x1, x2;
     std::tie(x1, y1, z1) = actual_probe_points[0];
     std::tie(x2, y2, z2) = actual_probe_points[1];
-    c_offset = -57.2958 * (1 / atanf((y2 - y1) / (x2 - x1)));
+    c_offset = 57.2958 * atanf((x2 - x1) / (y2 - y1));
     c_offset /= 3.0;
 
     char *cmdc = new char[32];

@@ -271,7 +271,8 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
 
         if (this->home)
         {
-            zprobe->home();
+            Gcode gc(THEKERNEL->is_grbl_mode() ? "G28.2" : "G28", &(StreamOutput::NullStream));
+            THEKERNEL->call_event(ON_GCODE_RECEIVED, &gc);
         }
 
         Gcode beforeHome("M206 A0", &(StreamOutput::NullStream));
@@ -370,7 +371,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     {
         size_t n = strlen(cmd);
         snprintf(&cmd[n], 32 - n, "M206 A%1.3f", a_offset);
-        
+
         Gcode aOffsetGcode(cmd, &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &aOffsetGcode);
     }

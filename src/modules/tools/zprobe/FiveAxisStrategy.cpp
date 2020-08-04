@@ -31,8 +31,8 @@
 #define probe_point_8_checksum CHECKSUM("point8")
 #define probe_point_9_checksum CHECKSUM("point9")
 
-#define probe_device_big_part_length CHECKSUM("big_part_length")
-#define probe_device_small_part_length CHECKSUM("small_part_length")
+#define probe_device_big_part_length_checksum CHECKSUM("big_part_length")
+#define probe_device_small_part_length_checksum CHECKSUM("small_part_length")
 #define five_axis_home_checksum CHECKSUM("home_first")
 
 #define CALIBRFILE "/sd/fiveaxis.calibr"
@@ -69,8 +69,8 @@ FiveAxisStrategy::~FiveAxisStrategy() {}
 
 bool FiveAxisStrategy::handleConfig()
 {
-    this->big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length)->by_default(10.0F)->as_number();
-    this->small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length)->by_default(10.0F)->as_number();
+    this->big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length_checksum)->by_default(10.0F)->as_number();
+    this->small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length_checksum)->by_default(10.0F)->as_number();
     this->home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, five_axis_home_checksum)->by_default(true)->as_bool();
 
     std::string p1 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_1_checksum)->by_default("")->as_string();
@@ -101,7 +101,7 @@ bool FiveAxisStrategy::handleConfig()
     if (!p8.empty())
         probe_points[7] = parseXYZ(p8.c_str());
 
-        for (int i = 0; i < 9; i++)
+    for (int i = 0; i < 9; i++)
     {
         actual_probe_points[i] = std::make_tuple(0, 0, 0);
     }

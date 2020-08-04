@@ -63,6 +63,7 @@ FiveAxisStrategy::FiveAxisStrategy(ZProbe *zprobe) : LevelingStrategy(zprobe)
     {
         this->probe_points[i] = std::make_tuple(NAN, NAN, NAN);
     }
+    this->home = true;
 }
 
 FiveAxisStrategy::~FiveAxisStrategy() {}

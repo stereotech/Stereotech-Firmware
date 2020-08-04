@@ -101,8 +101,8 @@ bool FiveAxisStrategy::handleConfig()
     //if (!p10.empty())
     //    probe_points[9] = parseXYZ(p10.c_str());
 
-    this->big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length)->by_default(10.0F)->as_number();
-    this->small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length)->by_default(10.0F)->as_number();
+    big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length)->by_default(10.0F)->as_number();
+    small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length)->by_default(10.0F)->as_number();
     home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, home_checksum)->by_default(true)->as_bool();
 
     for (int i = 0; i < 9; i++)
@@ -176,6 +176,7 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
         }
         else if (gcode->m == 500 || gcode->m == 503)
         {
+            gcode->stream->printf(";Home: %s, big: %1.3f, small: %1.3f\n", home, big_part_length, small_part_length);
             gcode->stream->printf(";Load saved calibration\nM375\n");
             return true;
         }
@@ -360,12 +361,12 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float z1, z2;
     z1 = std::get<2>(actual_probe_points[0]);
     z2 = std::get<2>(actual_probe_points[1]);
-    a_offset = 57.2958 * asinf((z2 - z1) / (this->big_part_length + this->small_part_length));
+    a_offset = 57.2958 * asinf((z2 - z1) / (big_part_length + small_part_length));
 
     zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate());
     stream->printf("A axis offset is:%1.3f\n", a_offset);
-    stream->printf("Big part:%1.3f\n", this->big_part_length);
-    stream->printf("Small part:%1.3f\n", this->small_part_length);
+    stream->printf("Big part:%1.3f\n", big_part_length);
+    stream->printf("Small part:%1.3f\n", small_part_length);
     char *cmd = new char[32];
     if (!isnan(a_offset))
     {

@@ -100,7 +100,6 @@ bool FiveAxisStrategy::handleConfig()
     big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length)->by_default(10.0F)->as_number();
     small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length)->by_default(10.0F)->as_number();
     home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, home_checksum)->by_default(true)->as_bool();
-    this->home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, home_checksum)->by_default(true)->as_bool();
 
     for (int i = 0; i < 9; i++)
     {
@@ -174,6 +173,12 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
         else if (gcode->m == 500 || gcode->m == 503)
         {
             gcode->stream->printf(";Home: %s, %s, big: %1.3f, small: %1.3f\n", home ? "true" : "false", this->home ? "true" : "false", big_part_length, small_part_length);
+            for (size_t i = 0; i < 10; i++)
+            {
+                float x, y, z;
+                std::tie(x, y, z) = probe_points[i];
+                gcode->stream->printf("Probe point %d: %1.3f,%1.3f,%1.3f", i, x, y, z);
+            }
             gcode->stream->printf(";Load saved calibration\nM375\n");
             return true;
         }

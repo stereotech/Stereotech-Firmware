@@ -363,6 +363,8 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
 
     zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate());
     stream->printf("A axis offset is:%1.3f\n", a_offset);
+    stream->printf("Big part:%1.3f\n", this->big_part_length);
+    stream->printf("Small part:%1.3f\n", this->small_part_length);
     char *cmd = new char[32];
     if (!isnan(a_offset))
     {

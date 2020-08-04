@@ -101,10 +101,9 @@ bool FiveAxisStrategy::handleConfig()
     //if (!p10.empty())
     //    probe_points[9] = parseXYZ(p10.c_str());
 
-    float big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length)->by_default(10.0F)->as_number();
-    float small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length)->by_default(10.0F)->as_number();
+    this->big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length)->by_default(10.0F)->as_number();
+    this->small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length)->by_default(10.0F)->as_number();
     this->home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, home_checksum)->by_default(true)->as_bool();
-
 
     for (int i = 0; i < 9; i++)
     {
@@ -270,7 +269,7 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
         THEKERNEL->conveyor->wait_for_idle();
         setFirstAdjustFunction(false);
 
-        if (home)
+        if (this->home)
         {
             zprobe->home();
         }

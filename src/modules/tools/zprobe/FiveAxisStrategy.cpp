@@ -71,7 +71,8 @@ bool FiveAxisStrategy::handleConfig()
 {
     big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length_checksum)->by_default(10.0F)->as_number();
     small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length_checksum)->by_default(10.0F)->as_number();
-    home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, five_axis_home_checksum)->by_default(true)->as_bool();
+    //home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, five_axis_home_checksum)->by_default(true)->as_bool();
+    home = true;
     this->home = true;
 
     std::string p1 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_1_checksum)->by_default("")->as_string();

@@ -47,7 +47,7 @@ private:
     float big_part_length;
     float small_part_length;
     bool home:1;
-  }
+  };
   float calibration[10];
   StreamOutput *stream;
 

@@ -48,7 +48,7 @@ private:
   struct
   {
     bool home : 1;
-  }
+  };
 
   float calibration[10];
   StreamOutput *stream;

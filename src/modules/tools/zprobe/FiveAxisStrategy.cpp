@@ -63,7 +63,6 @@ FiveAxisStrategy::FiveAxisStrategy(ZProbe *zprobe) : LevelingStrategy(zprobe)
     {
         this->probe_points[i] = std::make_tuple(NAN, NAN, NAN);
     }
-    this->home = true;
 }
 
 FiveAxisStrategy::~FiveAxisStrategy() {}
@@ -97,10 +96,6 @@ bool FiveAxisStrategy::handleConfig()
         probe_points[6] = parseXYZ(p7.c_str());
     if (!p8.empty())
         probe_points[7] = parseXYZ(p8.c_str());
-    if (!p9.empty())
-        probe_points[8] = parseXYZ(p9.c_str());
-    //if (!p10.empty())
-    //    probe_points[9] = parseXYZ(p10.c_str());
 
     big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length)->by_default(10.0F)->as_number();
     small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length)->by_default(10.0F)->as_number();

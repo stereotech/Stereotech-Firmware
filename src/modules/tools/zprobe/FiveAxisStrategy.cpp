@@ -16,6 +16,7 @@
 #include "platform_memory.h"
 
 #include <string>
+#include <format>
 #include <algorithm>
 #include <cstdlib>
 #include <cmath>

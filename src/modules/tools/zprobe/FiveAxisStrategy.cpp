@@ -373,16 +373,16 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     if (!isnan(a_offset))
     {
         size_t n = strlen(cmd);
-        snprintf(&cmd[n], 32 - n, "M206 A%1.3f", a_offset);
+        snprintf(&cmd[n], 32 - n, "M206 A%1.3\n", a_offset);
         stream->printf(cmd);
         Gcode aOffsetGcode(cmd, &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &aOffsetGcode);
     }
     delete[] cmd;
 
-    Gcode homeA("G28 A0", &(StreamOutput::NullStream));
+    Gcode homeA("G28 A0\n", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeA);
-    Gcode zeroA("G0 A0", &(StreamOutput::NullStream));
+    Gcode zeroA("G0 A0\n", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &zeroA);
 
     float c_offset = 0;
@@ -396,13 +396,13 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     if (!isnan(c_offset))
     {
         size_t nc = strlen(cmdc);
-        snprintf(&cmdc[nc], 32 - nc, "G0 C%1.3f", c_offset);
+        snprintf(&cmdc[nc], 32 - nc, "G0 C%1.3f\n", c_offset);
         stream->printf(cmdc);
         Gcode offset(cmdc, &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
         stream->printf("C axis offset is:%1.3f\n", c_offset);
 
-        Gcode homeC("G92 C0", &(StreamOutput::NullStream));
+        Gcode homeC("G92 C0\n", &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeC);
     }
     delete[] cmdc;

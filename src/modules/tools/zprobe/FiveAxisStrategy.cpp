@@ -363,7 +363,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     float z1, z2;
     z1 = std::get<2>(actual_probe_points[0]);
     z2 = std::get<2>(actual_probe_points[1]);
-    a_offset = 57.2958 * asinf((z2 - z1) / (big_part_length + small_part_length));
+    a_offset = -57.2958 * asinf((z2 - z1) / (big_part_length + small_part_length));
 
     zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate());
     stream->printf("A axis offset is:%1.3f\n", a_offset);
@@ -374,7 +374,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     {
         size_t n = strlen(cmd);
         snprintf(&cmd[n], 32 - n, "M206 A%1.3f", a_offset);
-
+        stream->printf(cmd);
         Gcode aOffsetGcode(cmd, &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &aOffsetGcode);
     }

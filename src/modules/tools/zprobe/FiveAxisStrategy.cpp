@@ -402,20 +402,15 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     c_offset = -57.2958 * atanf((x2 - x1) / (y2 - y1));
     c_offset /= 3.0;
 
-    char *cmdc = new char[32];
     if (!isnan(c_offset))
     {
-        size_t nc = strlen(cmdc);
-        snprintf(&cmdc[nc], 32 - nc, "G0 C%1.3f\n", c_offset);
-        stream->printf(cmdc);
-        Gcode offset(cmdc, &(StreamOutput::NullStream));
-        THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
+        string cmdc = string_format("G0 C%1.3f\n", c_offset);
+        Gcode cOffsetGcode(cmdc, &(StreamOutput::NullStream));
+        THEKERNEL->call_event(ON_GCODE_RECEIVED, &cOffsetGcode);
         stream->printf("C axis offset is:%1.3f\n", c_offset);
-
         Gcode homeC("G92 C0\n", &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeC);
     }
-    delete[] cmdc;
 
     //Move to the third point
     float x, y, z;

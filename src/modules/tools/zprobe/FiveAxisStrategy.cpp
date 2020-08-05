@@ -33,7 +33,7 @@
 
 #define probe_device_big_part_length_checksum CHECKSUM("big_part_length")
 #define probe_device_small_part_length_checksum CHECKSUM("small_part_length")
-#define five_axis_home_checksum CHECKSUM("home_first")
+#define five_axis_home_checksum CHECKSUM("do_home_first")
 
 #define CALIBRFILE "/sd/fiveaxis.calibr"
 
@@ -63,8 +63,6 @@ FiveAxisStrategy::FiveAxisStrategy(ZProbe *zprobe) : LevelingStrategy(zprobe)
     {
         this->probe_points[i] = std::make_tuple(NAN, NAN, NAN);
     }
-    home = true;
-    this->home = true;
 }
 
 FiveAxisStrategy::~FiveAxisStrategy() {}
@@ -73,9 +71,7 @@ bool FiveAxisStrategy::handleConfig()
 {
     big_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_big_part_length_checksum)->by_default(10.0F)->as_number();
     small_part_length = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_device_small_part_length_checksum)->by_default(10.0F)->as_number();
-    //home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, five_axis_home_checksum)->by_default(true)->as_bool();
-    home = true;
-    this->home = true;
+    home = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, five_axis_home_checksum)->by_default(true)->as_bool();
 
     std::string p1 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_1_checksum)->by_default("")->as_string();
     std::string p2 = THEKERNEL->config->value(leveling_strategy_checksum, five_axis_strategy_checksum, probe_point_2_checksum)->by_default("")->as_string();
@@ -176,7 +172,7 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
         }
         else if (gcode->m == 500 || gcode->m == 503)
         {
-            gcode->stream->printf(";Home: %s, %s, big: %1.3f, small: %1.3f\n", home ? "true" : "false", this->home ? "true" : "false", big_part_length, small_part_length);
+            gcode->stream->printf(";Home: %s, big: %1.3f, small: %1.3f\n", home ? "true" : "false", big_part_length, small_part_length);
             for (size_t i = 0; i < 10; i++)
             {
                 float x, y, z;

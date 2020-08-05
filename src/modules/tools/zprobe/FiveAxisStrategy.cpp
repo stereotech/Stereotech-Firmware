@@ -369,16 +369,12 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     stream->printf("A axis offset is:%1.3f\n", a_offset);
     stream->printf("Big part:%1.3f\n", big_part_length);
     stream->printf("Small part:%1.3f\n", small_part_length);
-    char *cmd = new char[32];
     if (!isnan(a_offset))
     {
-        size_t n = strlen(cmd);
-        snprintf(&cmd[n], 32 - n, "M206 A%1.3f\n", a_offset);
-        stream->printf(cmd);
+        string cmd = format("M206 A%1.3f\n", a_offset);
         Gcode aOffsetGcode(cmd, &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &aOffsetGcode);
     }
-    delete[] cmd;
 
     Gcode homeA("G28 A0\n", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeA);

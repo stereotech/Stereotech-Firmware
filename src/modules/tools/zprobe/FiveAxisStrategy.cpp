@@ -16,7 +16,6 @@
 #include "platform_memory.h"
 
 #include <string>
-#include <format>
 #include <algorithm>
 #include <cstdlib>
 #include <cmath>
@@ -57,6 +56,19 @@
 #define XOC 7
 #define YOC 8
 #define ZOC 9
+
+template <typename... Args>
+std::string string_format(const std::string &format, Args... args)
+{
+    size_t size = snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
+    if (size <= 0)
+    {
+        throw std::runtime_error("Error during formatting.");
+    }
+    std::unique_ptr<char[]> buf(new char[size]);
+    snprintf(buf.get(), size, format.c_str(), args...);
+    return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
+}
 
 FiveAxisStrategy::FiveAxisStrategy(ZProbe *zprobe) : LevelingStrategy(zprobe)
 {
@@ -372,7 +384,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     stream->printf("Small part:%1.3f\n", small_part_length);
     if (!isnan(a_offset))
     {
-        string cmd = format("M206 A%1.3f\n", a_offset);
+        string cmd = string_format("M206 A%1.3f\n", a_offset);
         Gcode aOffsetGcode(cmd, &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &aOffsetGcode);
     }
@@ -858,3 +870,4 @@ FiveAxisStrategy::parseXYZ(const char *str)
     }
     return std::make_tuple(x, y, z);
 }
+

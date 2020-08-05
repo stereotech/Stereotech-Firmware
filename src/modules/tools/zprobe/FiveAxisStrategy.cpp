@@ -373,7 +373,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     if (!isnan(a_offset))
     {
         size_t n = strlen(cmd);
-        snprintf(&cmd[n], 32 - n, "M206 A%1.3\n", a_offset);
+        snprintf(&cmd[n], 32 - n, "M206 A%1.3f\n", a_offset);
         stream->printf(cmd);
         Gcode aOffsetGcode(cmd, &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &aOffsetGcode);

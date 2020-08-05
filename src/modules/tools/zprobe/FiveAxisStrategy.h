@@ -43,6 +43,11 @@ private:
 
   std::tuple<float, float, float> probe_points[8];
   std::tuple<float, float, float> actual_probe_points[8];
+
+  float calibration[10];
+  StreamOutput *stream;
+
+public:
   float big_part_length;
   float small_part_length;
   struct
@@ -50,10 +55,6 @@ private:
     bool home : 1;
   };
 
-  float calibration[10];
-  StreamOutput *stream;
-
-public:
   FiveAxisStrategy(ZProbe *zprobe);
   ~FiveAxisStrategy();
   bool handleGcode(Gcode *gcode);

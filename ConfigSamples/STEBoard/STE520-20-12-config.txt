@@ -118,9 +118,9 @@ temperature_control.hotend.runaway_range                63   # How far from the 
 
 # PID configuration 
 # See http://smoothieware.org/temperaturecontrol#pid
-temperature_control.hotend.p_factor         17.2             # P ( proportional ) factor
-temperature_control.hotend.i_factor         0.827            # I ( integral ) factor
-temperature_control.hotend.d_factor         89               # D ( derivative ) factor
+temperature_control.hotend.p_factor         25             # P ( proportional ) factor
+temperature_control.hotend.i_factor         0.5            # I ( integral ) factor
+temperature_control.hotend.d_factor         30             # D ( derivative ) factor
 
 # Second hotend configuration
 temperature_control.hotend2.enable            true           # Whether to activate this ( "hotend" ) module at all.
@@ -138,9 +138,9 @@ temperature_control.hotend2.runaway_cooling_timeout      2040  # How long it can
 temperature_control.hotend2.runaway_range                63   # How far from the set temperature it can wander, max setting is 63°C
 
 
-temperature_control.hotend2.p_factor          17.1           # P ( proportional ) factor
-temperature_control.hotend2.i_factor          0.827          # I ( integral ) factor
-temperature_control.hotend2.d_factor          89             # D ( derivative ) factor
+temperature_control.hotend2.p_factor        25             # P ( proportional ) factor
+temperature_control.hotend2.i_factor        0.5            # I ( integral ) factor
+temperature_control.hotend2.d_factor        30             # D ( derivative ) factor
 
 temperature_control.bed.enable               false             # Whether to activate this ( "hotend" ) module at all.
 temperature_control.bed.thermistor_pin       0.24             # Pin for the thermistor to read

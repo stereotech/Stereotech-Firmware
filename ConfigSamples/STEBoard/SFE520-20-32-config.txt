@@ -83,7 +83,7 @@ extruder.hotend.en_pin                          0.21          # Pin for extruder
 
 # Second extruder module configuration
 extruder.hotend2.enable                         true         # Whether to activate the extruder module at all. All configuration is ignored if false
-extruder.hotend2.steps_per_mm                   140          # Steps per mm for extruder stepper
+extruder.hotend2.steps_per_mm                   80          # Steps per mm for extruder stepper
 extruder.hotend2.default_feed_rate              600          # Default rate ( mm/minute ) for moves where only the extruder moves
 extruder.hotend2.acceleration                   500          # Acceleration for the stepper motor, as of 0.6, arbitrary ratio
 extruder.hotend2.max_speed                      50           # mm/s
@@ -199,10 +199,10 @@ switch.fibercutter.input_on_command                  M280             # M280 S7.
 switch.fibercutter.input_off_command                 M281             # Same as M280 S0 0% duty cycle, effectively off
 switch.fibercutter.output_pin                        2.12             # May be any spare pin
 switch.fibercutter.output_type                       swpwm            # Software pwm output settable with S parameter in the input_on_command
-#switch.fibercutter.pwm_period_ms                    20               # set period to 20ms (50Hz) default is 50Hz
-#switch.fibercutter.startup_state                    false            # false uses startup_value on boot true uses default_on_value
-#switch.fibercutter.startup_value                    7.43             # On boot and HALT it will set this PWM value
-#switch.fibercutter.default_on_value                 3.3              # This PWM value will be set if M280 doe snot have an S parameter, it is also the value used if startup_state is true
+switch.fibercutter.pwm_period_ms                    20               # set period to 20ms (50Hz) default is 50Hz
+#switch.fibercutter.startup_state                    true            # false uses startup_value on boot true uses default_on_value
+#switch.fibercutter.startup_value                    4             # On boot and HALT it will set this PWM value
+#switch.fibercutter.default_on_value                 4              # This PWM value will be set if M280 doe snot have an S parameter, it is also the value used if startup_state is true
 
 ## Temperatureswitch
 temperatureswitch.heatsink.enable              true            #

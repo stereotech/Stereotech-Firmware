@@ -181,7 +181,9 @@ switch.bottomfan.enable                            true             # Enable thi
 switch.bottomfan.input_on_command                  M106             # Command that will turn this switch on
 switch.bottomfan.input_off_command                 M107             # Command that will turn this switch off
 switch.bottomfan.subcode                            3
+switch.bottomfan.startup_state                     false
 switch.bottomfan.startup_value                     255
+switch.bottomfan.default_on_value                  255
 switch.bottomfan.output_pin                        2.6            # Pin this module controls
 switch.bottomfan.output_type                       pwm              # PWM output settable with S parameter in the input_on_comand
 switch.bottomfan.max_pwm                           255              # Set max pwm for the pin default is 255

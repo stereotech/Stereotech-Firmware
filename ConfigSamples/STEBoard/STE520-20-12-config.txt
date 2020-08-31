@@ -20,8 +20,8 @@ mm_max_arc_error                             0.01             # The maximum erro
 alpha_steps_per_mm                           640               # Steps per mm for alpha ( X ) stepper
 beta_steps_per_mm                            640               # Steps per mm for beta ( Y ) stepper
 gamma_steps_per_mm                           800             # Steps per mm for gamma ( Z ) stepper
-delta_steps_per_mm                           26.66667
-epsilon_steps_per_mm                         26.66667
+delta_steps_per_mm                           40
+epsilon_steps_per_mm                         40
 zeta_steps_per_mm                            80
 
 # Planner module configuration : Look-ahead and acceleration configuration
@@ -36,7 +36,7 @@ x_axis_max_speed                             12000            # Maximum speed in
 y_axis_max_speed                             12000            # Maximum speed in mm/min
 z_axis_max_speed                             1500              # Maximum speed in mm/min
 
-# Stepper module configuration 
+# Stepper module configuration
 # Pins are defined as  ports, and pin numbers, appending "!" to the number will invert a pin
 # See http://smoothieware.org/pin-configuration and http://smoothieware.org/pinout
 alpha_step_pin                               2.0              # Pin for alpha stepper step signal
@@ -116,7 +116,7 @@ temperature_control.hotend.runaway_heating_timeout      2040  # How long it can 
 temperature_control.hotend.runaway_cooling_timeout      2040  # How long it can take to cool down if temp is set lower, max is 2040 seconds
 temperature_control.hotend.runaway_range                63   # How far from the set temperature it can wander, max setting is 63°C
 
-# PID configuration 
+# PID configuration
 # See http://smoothieware.org/temperaturecontrol#pid
 temperature_control.hotend.p_factor         25             # P ( proportional ) factor
 temperature_control.hotend.i_factor         0.5            # I ( integral ) factor

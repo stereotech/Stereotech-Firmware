@@ -378,6 +378,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     z1 = std::get<2>(actual_probe_points[0]);
     z2 = std::get<2>(actual_probe_points[1]);
     a_offset = -57.2958 * asinf((z2 - z1) / (big_part_length + small_part_length));
+    a_offset *= 1.5;
 
     zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate());
     stream->printf("A axis offset is:%1.3f\n", a_offset);

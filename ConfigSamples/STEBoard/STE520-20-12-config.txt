@@ -254,7 +254,7 @@ endstop.maxz.retract                         5                # bounce off endst
 endstop.maxa.enable                          true             # enable an endstop
 endstop.maxa.pin                             1.22!             # pin
 endstop.maxa.homing_direction                home_to_max      # direction it moves to the endstop
-endstop.maxa.homing_position                 90               # the cartesian coordinate this is set to when it homes
+endstop.maxa.homing_position                 60               # the cartesian coordinate this is set to when it homes
 endstop.maxa.axis                            A                # the axis designator
 endstop.maxa.max_travel                      200              # the maximum travel in mm before it times out
 endstop.maxa.fast_rate                       30               # fast homing rate in mm/sec

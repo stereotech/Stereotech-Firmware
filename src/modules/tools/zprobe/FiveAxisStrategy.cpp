@@ -453,8 +453,8 @@ void FiveAxisStrategy::setBAxisCorrection(StreamOutput *stream)
     stream->printf("T correction: %1.3f\n", calibration[T]);
     float x3;
     x3 = std::get<0>(actual_probe_points[2]);
-    calibration[X0] = x3 + (this->big_part_length + this->small_part_length) * sinf(calibration[B]);
-    calibration[Z0] = z3 - (this->big_part_length + this->small_part_length) * cosf(calibration[B]);
+    calibration[X0] = x3 - (this->big_part_length + this->small_part_length) * sinf(calibration[B]);
+    calibration[Z0] = z3 + (this->big_part_length + this->small_part_length) * cosf(calibration[B]);
     stream->printf("Real A axis rotation point: x%1.3f y%1.3f z%1.3f\n", calibration[X0], position[1], calibration[Z0]);
     setFirstAdjustFunction(true);
 

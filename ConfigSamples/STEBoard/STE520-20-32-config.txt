@@ -36,7 +36,7 @@ x_axis_max_speed                             12000            # Maximum speed in
 y_axis_max_speed                             12000            # Maximum speed in mm/min
 z_axis_max_speed                             1500              # Maximum speed in mm/min
 
-# Stepper module configuration 
+# Stepper module configuration
 # Pins are defined as  ports, and pin numbers, appending "!" to the number will invert a pin
 # See http://smoothieware.org/pin-configuration and http://smoothieware.org/pinout
 alpha_step_pin                               2.0              # Pin for alpha stepper step signal
@@ -116,11 +116,11 @@ temperature_control.hotend.runaway_heating_timeout      2040  # How long it can 
 temperature_control.hotend.runaway_cooling_timeout      2040  # How long it can take to cool down if temp is set lower, max is 2040 seconds
 temperature_control.hotend.runaway_range                63   # How far from the set temperature it can wander, max setting is 63°C
 
-# PID configuration 
+# PID configuration
 # See http://smoothieware.org/temperaturecontrol#pid
-temperature_control.hotend.p_factor         25             # P ( proportional ) factor
+temperature_control.hotend.p_factor         15             # P ( proportional ) factor
 temperature_control.hotend.i_factor         0.5            # I ( integral ) factor
-temperature_control.hotend.d_factor         30             # D ( derivative ) factor
+temperature_control.hotend.d_factor         25             # D ( derivative ) factor
 
 # Second hotend configuration
 temperature_control.hotend2.enable            true           # Whether to activate this ( "hotend" ) module at all.
@@ -138,9 +138,9 @@ temperature_control.hotend2.runaway_cooling_timeout      2040  # How long it can
 temperature_control.hotend2.runaway_range                63   # How far from the set temperature it can wander, max setting is 63°C
 
 
-temperature_control.hotend2.p_factor        25             # P ( proportional ) factor
+temperature_control.hotend2.p_factor        15             # P ( proportional ) factor
 temperature_control.hotend2.i_factor        0.5            # I ( integral ) factor
-temperature_control.hotend2.d_factor        30             # D ( derivative ) factor
+temperature_control.hotend2.d_factor        25             # D ( derivative ) factor
 
 temperature_control.bed.enable               false             # Whether to activate this ( "hotend" ) module at all.
 temperature_control.bed.thermistor_pin       0.24             # Pin for the thermistor to read

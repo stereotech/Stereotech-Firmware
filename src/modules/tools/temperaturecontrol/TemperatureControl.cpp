@@ -53,6 +53,8 @@
 
 #define designator_checksum CHECKSUM("designator")
 
+#define input_pin_checksum CHECKSUM("input_pin")
+
 #define p_factor_checksum CHECKSUM("p_factor")
 #define i_factor_checksum CHECKSUM("i_factor")
 #define d_factor_checksum CHECKSUM("d_factor")
@@ -146,6 +148,19 @@ void TemperatureControl::load_config()
     this->readings_per_second = THEKERNEL->config->value(temperature_control_checksum, this->name_checksum, readings_per_second_checksum)->by_default(20)->as_number();
 
     this->designator = THEKERNEL->config->value(temperature_control_checksum, this->name_checksum, designator_checksum)->by_default(string("T"))->as_string();
+
+    this->input_pin = new Pin();
+    this->input_pin->from_string(THEKERNEL->config->value(temperature_control_checksum, this->name_checksum, input_pin_checksum)->by_default("nc")->as_string())->as_input();
+    if (this->input_pin->connected())
+    {
+        this->is_input = true;
+    }
+    else
+    {
+        delete this->input_pin;
+        this->input_pin = nullptr;
+        this->is_input = false;
+    }
 
     // Runaway parameters
     uint32_t n = THEKERNEL->config->value(temperature_control_checksum, this->name_checksum, runaway_range_checksum)->by_default(20)->as_number();
@@ -405,7 +420,13 @@ void TemperatureControl::on_gcode_received(void *argument)
                     // wait for temp to be reached, no more gcodes will be fetched until this is complete
                     if (gcode->m == this->set_and_wait_m_code)
                     {
-                        if (isinf(get_temperature()) && isinf(sensor->get_temperature()))
+                        bool current_pin_state = this->is_input;
+                        if (current_pin_state)
+                        {
+                            current_pin_state = this->input_pin->get();
+                        }
+
+                        if (isinf(get_temperature()) && isinf(sensor->get_temperature()) && !current_pin_state)
                         {
                             THEKERNEL->streams->printf("Temperature reading is unreliable on %s HALT asserted - reset or M999 required\n", designator.c_str());
                             THEKERNEL->call_event(ON_HALT, nullptr);

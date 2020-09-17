@@ -1328,6 +1328,9 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);
         target[Y_AXIS] += std::get<Y_AXIS>(workpiece_offset);
         target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
+
+        //Zet Z axis offset
+        offset[Z_AXIS] = -abs(std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
     }
 
     if (gcode->has_letter('F'))
@@ -1344,29 +1347,44 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
     bool moved = false;
 
-    // Perform any physical actions
-    switch (motion_mode)
+    if (this->use_workpiece_offset)
     {
-    case NONE:
-        break;
+        float deg_to_rad = 0.01745329251F;
+        float delta_a = target[A_AXIS]; // - machine_position[A_AXIS]);
+        float delta_sign = 1;
+        if (delta_a != 0)
+        {
+            delta_sign = delta_a / abs(delta_a);
+        }
+        moved = this->compute_arc(gcode, offset, target, delta_sign > 0 ? CCW_ARC : CW_ARC, delta_e);
+    }
+    else
+    {
+        // Perform any physical actions
+        switch (motion_mode)
+        {
+        case NONE:
+            break;
 
-    case SEEK:
-        moved = this->append_line(gcode, target, this->seek_rate / seconds_per_minute, delta_e);
-        break;
+        case SEEK:
+            moved = this->append_line(gcode, target, this->seek_rate / seconds_per_minute, delta_e);
+            break;
 
-    case LINEAR:
-        moved = this->append_line(gcode, target, this->feed_rate / seconds_per_minute, delta_e);
-        break;
+        case LINEAR:
+            moved = this->append_line(gcode, target, this->feed_rate / seconds_per_minute, delta_e);
+            break;
 
-    case CW_ARC:
-    case CCW_ARC:
-        // Note arcs are not currently supported by extruder based machines, as 3D slicers do not use arcs (G2/G3)
-        moved = this->compute_arc(gcode, offset, target, motion_mode, delta_e);
-        break;
+        case CW_ARC:
+        case CCW_ARC:
+            // Note arcs are not currently supported by extruder based machines, as 3D slicers do not use arcs (G2/G3)
+            moved = this->compute_arc(gcode, offset, target, motion_mode, delta_e);
+            break;
+        }
     }
 
     // needed to act as start of next arc command
-    memcpy(arc_milestone, target, sizeof(arc_milestone));
+    //memcpy(arc_milestone, target, sizeof(arc_milestone));
+    memcpy(arc_milestone, not_compensated_target, sizeof(arc_milestone));
 
     if (moved)
     {

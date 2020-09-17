@@ -1349,8 +1349,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
     if (this->use_workpiece_offset)
     {
-        float deg_to_rad = 0.01745329251F;
-        float delta_a = target[A_AXIS]; // - machine_position[A_AXIS]);
+        float delta_a = target[A_AXIS];
         float delta_sign = 1;
         if (delta_a != 0)
         {

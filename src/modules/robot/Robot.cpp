@@ -1382,8 +1382,8 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 
     // needed to act as start of next arc command
-    //memcpy(arc_milestone, target, sizeof(arc_milestone));
-    memcpy(arc_milestone, not_compensated_target, sizeof(arc_milestone));
+    memcpy(arc_milestone, target, sizeof(arc_milestone));
+    //memcpy(arc_milestone, not_compensated_target, sizeof(arc_milestone));
 
     if (moved)
     {

@@ -1361,7 +1361,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     case CW_ARC:
     case CCW_ARC:
         // Note arcs are not currently supported by extruder based machines, as 3D slicers do not use arcs (G2/G3)
-        moved = this->compute_arc(gcode, offset, target, motion_mode);
+        moved = this->compute_arc(gcode, offset, target, motion_mode, delta_e);
         break;
     }
 
@@ -1873,7 +1873,7 @@ bool Robot::append_line(Gcode *gcode, const float target[], float rate_mm_s, flo
 
 // Append an arc to the queue ( cutting it into segments as needed )
 // TODO does not support any E parameters so cannot be used for 3D printing.
-bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[], float radius, bool is_clockwise)
+bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[], float radius, bool is_clockwise, float delta_e)
 {
     float rate_mm_s = this->feed_rate / seconds_per_minute;
     // catch negative or zero feed rates and return the same error as GRBL does
@@ -1935,10 +1935,18 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     // Find the distance for this gcode
     float millimeters_of_travel = hypotf(angular_travel * radius, fabsf(linear_travel));
 
-    // We don't care about non-XYZ moves ( for example the extruder produces some of those )
+    if (!isnan(delta_e) && gcode->has_g && gcode->g == 1)
+    {
+        float data[2] = {delta_e, rate_mm_s / millimeters_of_travel};
+        if (PublicData::set_value(extruder_checksum, target_checksum, data))
+        {
+            rate_mm_s *= data[1]; // adjust the feedrate
+        }
+    }
+
     if (millimeters_of_travel < 0.000001F)
     {
-        return false;
+        return this->append_milestone(target, rate_mm_s);
     }
 
     // limit segments by maximum arc error
@@ -2003,6 +2011,10 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
         uint16_t i;
         int8_t count = 0;
 
+        float segment_delta[n_motors];
+        for (int i = 0; i < n_motors; i++)
+            segment_delta[i] = (target[i] - machine_position[i]) / segments;
+
         // init array for all axis
         memcpy(arc_target, machine_position, n_motors * sizeof(float));
 
@@ -2038,6 +2050,10 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
             arc_target[this->plane_axis_1] = center_axis1 + r_axis1;
             arc_target[this->plane_axis_2] += linear_per_segment;
 
+            //Handle other axes
+            for (int j = 3; j < n_motors; j++)
+                arc_target[j] += segment_delta[j];
+
             // Append this segment to the queue
             bool b = this->append_milestone(arc_target, rate_mm_s);
             moved = moved || b;
@@ -2066,7 +2082,7 @@ bool Robot::compute_arc(Gcode *gcode, const float offset[], const float target[]
     }
 
     // Append arc
-    return this->append_arc(gcode, target, offset, radius, is_clockwise);
+    return this->append_arc(gcode, target, offset, radius, is_clockwise, delta_e);
 }
 
 float Robot::theta(float x, float y)

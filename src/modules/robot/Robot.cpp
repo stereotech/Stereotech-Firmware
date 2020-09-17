@@ -1497,7 +1497,7 @@ void Robot::reset_position_from_current_actuator_position()
 void Robot::calculate_workpiece_offset(const float target[])
 {
     float deg_to_rad = 0.01745329251F;
-    float delta_a = deg_to_rad * (target[A_AXIS]); // - machine_position[A_AXIS]);
+    float delta_a = deg_to_rad * (target[A_AXIS]) * 1.5; // - machine_position[A_AXIS]);
     float delta_sign = 1;
     if (delta_a != 0)
     {

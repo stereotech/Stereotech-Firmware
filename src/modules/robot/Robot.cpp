@@ -111,7 +111,7 @@ Robot::Robot()
     this->inch_mode = false;
     this->absolute_mode = true;
     this->e_absolute_mode = true;
-    this->select_plane(X_AXIS, Y_AXIS, Z_AXIS);
+    this->select_plane(Y_AXIS, Z_AXIS, X_AXIS);
     memset(this->machine_position, 0, sizeof machine_position);
     memset(this->compensated_machine_position, 0, sizeof compensated_machine_position);
     memset(this->babysteps, 0, sizeof babysteps);
@@ -1382,8 +1382,8 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 
     // needed to act as start of next arc command
-    memcpy(arc_milestone, target, sizeof(arc_milestone));
-    //memcpy(arc_milestone, not_compensated_target, sizeof(arc_milestone));
+    //memcpy(arc_milestone, target, sizeof(arc_milestone));
+    memcpy(arc_milestone, not_compensated_target, sizeof(arc_milestone));
 
     if (moved)
     {

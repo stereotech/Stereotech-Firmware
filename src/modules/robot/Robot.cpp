@@ -2068,7 +2068,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
 }
 
 // Do the math for an arc and add it to the queue
-bool Robot::compute_arc(Gcode *gcode, const float offset[], const float target[], enum MOTION_MODE_T motion_mode)
+bool Robot::compute_arc(Gcode *gcode, const float offset[], const float target[], enum MOTION_MODE_T motion_mode, float delta_e)
 {
 
     // Find the radius

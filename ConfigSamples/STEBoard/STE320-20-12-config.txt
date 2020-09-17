@@ -209,7 +209,7 @@ temperatureswitch.bottom.inverted              false          #
 ## Endstops new syntax (the name is not significant) ONLY use if you use A B or C axis endstops (DO NOT USE if using just XYZ)
 # NOTE only a min or a max homing endstop maybe defined
 endstop.minx.enable                          true             # enable an endstop
-endstop.minx.pin                             1.24!             # pin
+endstop.minx.pin                             1.24o!             # pin
 endstop.minx.homing_direction                home_to_min      # direction it moves to the endstop
 endstop.minx.homing_position                 0                # the cartesian coordinate this is set to when it homes
 endstop.minx.axis                            X                # the axis designator
@@ -220,7 +220,7 @@ endstop.minx.retract                         5                # bounce off endst
 
 # uncomment for homing to max and comment the min above
 endstop.maxy.enable                          true             # enable an endstop
-endstop.maxy.pin                             1.27!             # pin
+endstop.maxy.pin                             1.27o!             # pin
 endstop.maxy.homing_direction                home_to_max      # direction it moves to the endstop
 endstop.maxy.homing_position                 200              # the cartesian coordinate this is set to when it homes
 endstop.maxy.axis                            Y                # the axis designator
@@ -230,7 +230,7 @@ endstop.maxy.slow_rate                       25               # slow homing rate
 endstop.maxy.retract                         5                # bounce off endstop in mm
 
 endstop.maxz.enable                          true             # enable an endstop
-endstop.maxz.pin                             1.29!             # pin
+endstop.maxz.pin                             1.29o!             # pin
 endstop.maxz.homing_direction                home_to_max      # direction it moves to the endstop
 endstop.maxz.homing_position                 200                # the cartesian coordinate this is set to when it homes
 endstop.maxz.axis                            Z                # the axis designator
@@ -246,7 +246,7 @@ endstop.maxz.retract                         5                # bounce off endst
 
 # OPTIONAL uncomment for homing the A axis to min
 endstop.maxa.enable                          false             # enable an endstop
-endstop.maxa.pin                             1.22!             # pin
+endstop.maxa.pin                             1.22o!             # pin
 endstop.maxa.homing_direction                home_to_max      # direction it moves to the endstop
 endstop.maxa.homing_position                 90               # the cartesian coordinate this is set to when it homes
 endstop.maxa.axis                            A                # the axis designator

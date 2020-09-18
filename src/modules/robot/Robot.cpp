@@ -1349,7 +1349,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
     if (this->use_workpiece_offset && target[A_AXIS] != this->machine_position[A_AXIS])
     {
-        float delta_a = target[A_AXIS];
+        float delta_a = target[A_AXIS] - this->machine_position[A_AXIS];
         float delta_sign = 1;
         if (delta_a != 0)
         {
@@ -1937,8 +1937,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
         { // adjust angular_travel to be in the range of -2pi to 0 for clockwise arcs
             if (angular_travel > 0)
             {
-                //angular_travel -= (PI / 2);
-                angular_travel = -angular_travel;
+                angular_travel -= (PI / 2);
             }
         }
         else

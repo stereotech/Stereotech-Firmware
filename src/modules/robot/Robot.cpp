@@ -1347,7 +1347,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
     bool moved = false;
 
-    if (this->use_workpiece_offset)
+    if (this->use_workpiece_offset && target[A_AXIS] != this->machine_position[A_AXIS])
     {
         float delta_a = target[A_AXIS];
         float delta_sign = 1;
@@ -2068,7 +2068,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
             arc_target[this->plane_axis_2] += linear_per_segment;
 
             //Handle other axes
-            for (int j = 3; j < n_motors; j++)
+            for (int j = A_AXIS; j < n_motors; j++)
                 arc_target[j] += segment_delta[j];
 
             // Append this segment to the queue

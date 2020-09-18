@@ -1330,7 +1330,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
 
         //Zet Z axis offset
-        offset[Z_AXIS] = abs(std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+        offset[Z_AXIS] = -abs(std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
     }
 
     if (gcode->has_letter('F'))
@@ -1937,14 +1937,14 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
         { // adjust angular_travel to be in the range of -2pi to 0 for clockwise arcs
             if (angular_travel > 0)
             {
-                angular_travel -= (2 * PI);
+                angular_travel -= (PI / 2);
             }
         }
         else
         { // adjust angular_travel to be in the range of 0 to 2pi for counterclockwise arcs
             if (angular_travel < 0)
             {
-                angular_travel += (2 * PI);
+                angular_travel += (PI / 2);
             }
         }
     }

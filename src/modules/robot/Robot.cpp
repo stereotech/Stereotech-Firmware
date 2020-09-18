@@ -1382,8 +1382,8 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 
     // needed to act as start of next arc command
-    //memcpy(arc_milestone, target, sizeof(arc_milestone));
-    memcpy(arc_milestone, not_compensated_target, sizeof(arc_milestone));
+    memcpy(arc_milestone, target, sizeof(arc_milestone));
+    //memcpy(arc_milestone, not_compensated_target, sizeof(arc_milestone));
 
     if (moved)
     {
@@ -1914,14 +1914,14 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     //check for condition where atan2 formula will fail due to everything canceling out exactly
     if ((this->arc_milestone[this->plane_axis_0] == target[this->plane_axis_0]) && (this->arc_milestone[this->plane_axis_1] == target[this->plane_axis_1]))
     {
-        if (is_clockwise)
-        { // set angular_travel to -2pi for a clockwise full circle
-            angular_travel = (-2 * PI);
-        }
-        else
-        { // set angular_travel to 2pi for a counterclockwise full circle
-            angular_travel = (2 * PI);
-        }
+        //if (is_clockwise)
+        //{ // set angular_travel to -2pi for a clockwise full circle
+        //    angular_travel = (-2 * PI);
+        //}
+        //else
+        //{ // set angular_travel to 2pi for a counterclockwise full circle
+        //    angular_travel = (2 * PI);
+        //}
     }
     else
     {

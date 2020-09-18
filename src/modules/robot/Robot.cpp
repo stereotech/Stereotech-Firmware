@@ -1330,7 +1330,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
 
         //Zet Z axis offset
-        offset[Z_AXIS] = -abs(std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
+        offset[Z_AXIS] = abs(std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
     }
 
     if (gcode->has_letter('F'))

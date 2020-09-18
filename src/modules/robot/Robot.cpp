@@ -1330,9 +1330,9 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
 
         //Calculating offset from target to rotation center
-        offset[X_AXIS] = target[X_AXIS] - (std::get<X_AXIS>(wcs_offsets[1]) + std::get<X_AXIS>(wcs_offsets[2])) / 2;
-        offset[Y_AXIS] = target[Y_AXIS] - std::get<Y_AXIS>(wcs_offsets[1]);
-        offset[Z_AXIS] = target[Z_AXIS] - std::get<Z_AXIS>(wcs_offsets[2]);
+        offset[X_AXIS] = (std::get<X_AXIS>(wcs_offsets[1]) + std::get<X_AXIS>(wcs_offsets[2])) / 2 - this->arc_milestone[X_AXIS];
+        offset[Y_AXIS] = std::get<Y_AXIS>(wcs_offsets[1]) - this->arc_milestone[Y_AXIS];
+        offset[Z_AXIS] = std::get<Z_AXIS>(wcs_offsets[2]) - this->arc_milestone[Z_AXIS];
     }
 
     if (gcode->has_letter('F'))

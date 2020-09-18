@@ -1937,7 +1937,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
         { // adjust angular_travel to be in the range of -2pi to 0 for clockwise arcs
             if (angular_travel > 0)
             {
-                angular_travel -= (PI / 2);
+                //angular_travel -= (PI / 2);
+                angular_travel = -angular_travel;
             }
         }
         else

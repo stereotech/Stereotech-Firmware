@@ -36,7 +36,7 @@ x_axis_max_speed                             12000            # Maximum speed in
 y_axis_max_speed                             12000            # Maximum speed in mm/min
 z_axis_max_speed                             1500              # Maximum speed in mm/min
 
-# Stepper module configuration 
+# Stepper module configuration
 # Pins are defined as  ports, and pin numbers, appending "!" to the number will invert a pin
 # See http://smoothieware.org/pin-configuration and http://smoothieware.org/pinout
 alpha_step_pin                               2.0              # Pin for alpha stepper step signal
@@ -116,7 +116,7 @@ temperature_control.hotend.runaway_heating_timeout      0  # How long it can tak
 temperature_control.hotend.runaway_cooling_timeout      0  # How long it can take to cool down if temp is set lower, max is 2040 seconds
 temperature_control.hotend.runaway_range                50   # How far from the set temperature it can wander, max setting is 63°C
 
-# PID configuration 
+# PID configuration
 # See http://smoothieware.org/temperaturecontrol#pid
 temperature_control.hotend.p_factor         17.2             # P ( proportional ) factor
 temperature_control.hotend.i_factor         0.827            # I ( integral ) factor
@@ -209,7 +209,7 @@ temperatureswitch.bottom.inverted              false          #
 ## Endstops new syntax (the name is not significant) ONLY use if you use A B or C axis endstops (DO NOT USE if using just XYZ)
 # NOTE only a min or a max homing endstop maybe defined
 endstop.minx.enable                          true             # enable an endstop
-endstop.minx.pin                             1.24o!             # pin
+endstop.minx.pin                             1.24!             # pin
 endstop.minx.homing_direction                home_to_min      # direction it moves to the endstop
 endstop.minx.homing_position                 0                # the cartesian coordinate this is set to when it homes
 endstop.minx.axis                            X                # the axis designator

@@ -13,7 +13,6 @@ jobs:
     container: gcc
     env:
       DEBIAN_FRONTEND: noninteractive
-      GCC_PATH: $GITHUB_WORKSPACE/gcc-arm-none-eabi/bin
     steps:
       - uses: actions/checkout@v2
       
@@ -21,7 +20,8 @@ jobs:
         run: |
           apt-get update -qq && apt-get install -y apt-utils libc6-dev-i386 build-essential lib32z1 lib32ncurses6
           $GITHUB_WORKSPACE/linux_install
-          $GITHUB_WORKSPACE/BuildShell 
+          $GITHUB_WORKSPACE/BuildShell
+          echo "$GITHUB_WORKSPACE/gcc-arm-none-eabi/bin" >> $GITHUB_PATH
       - name: Compile firmware
         run: make clean all
         

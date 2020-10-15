@@ -31,7 +31,9 @@ jobs:
       - uses: actions/upload-artifact@v2.2.0
         with:
           name: firmware
-          path: LPC1768
+          path: |
+            LPC1768/configs
+            LPC1768/main.bin
   
   deploy:    
     runs-on: ubuntu-latest

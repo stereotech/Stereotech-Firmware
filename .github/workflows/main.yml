@@ -11,18 +11,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: gcc
-
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      PATH: $GITHUB_WORKSPACE/gcc-arm-none-eabi/bin:$PATH
     steps:
       - uses: actions/checkout@v2
       
       - name: Prepare environment
         run: |
-          export DEBIAN_FRONTEND=noninteractive
           apt-get update -qq && apt-get install -y apt-utils libc6-dev-i386 build-essential lib32z1 lib32ncurses6
           $GITHUB_WORKSPACE/linux_install
-          $GITHUB_WORKSPACE/BuildShell
-          export PATH="$GITHUB_WORKSPACE/gcc-arm-none-eabi/bin:$PATH"
-          
+          $GITHUB_WORKSPACE/BuildShell 
       - name: Compile firmware
         run: make clean all
         

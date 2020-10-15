@@ -42,6 +42,14 @@ jobs:
       - uses: actions/download-artifact@v2.0.5
         with:
           name: firmware
+          
+      - uses: TheDoctor0/zip-release@0.4.1
+        with:
+          filename: smoothie-build.zip
+      
+      - uses: ItsKarma/aws-cli@v1.70.0
+        with:
+          args: s3 cp smoothie-build.zip s3://${BUCKET_NAME}/smoothieware/stable/
       
       
 

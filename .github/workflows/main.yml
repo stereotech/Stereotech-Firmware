@@ -1,0 +1,45 @@
+
+name: CI
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: gcc
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Prepare environment
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update -qq && apt-get install -y apt-utils libc6-dev-i386 build-essential lib32z1 lib32ncurses6
+          /builds/stereotech/stefirmware/smoothieware/linux_install
+          /builds/stereotech/stefirmware/smoothieware/BuildShell
+          export PATH="/builds/stereotech/stefirmware/smoothieware/gcc-arm-none-eabi/bin:$PATH"
+          
+      - name: Compile firmware
+        run: make clean all
+        
+      - name: Copy configuration folder
+        run: cp -r ConfigSamples/STEBoard/ LPC1768/configs
+        
+      - uses: actions/upload-artifact@v2.2.0
+        with:
+          name: firmware
+          path: LPC1768
+  
+  deploy:    
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2.0.5
+        with:
+          name: firmware
+      
+      
+

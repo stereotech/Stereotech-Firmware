@@ -13,7 +13,7 @@ jobs:
     container: gcc
     env:
       DEBIAN_FRONTEND: noninteractive
-      PATH: $GITHUB_WORKSPACE/gcc-arm-none-eabi/bin:$PATH
+      GCC_PATH: $GITHUB_WORKSPACE/gcc-arm-none-eabi/bin
     steps:
       - uses: actions/checkout@v2
       

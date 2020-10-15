@@ -19,9 +19,9 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get update -qq && apt-get install -y apt-utils libc6-dev-i386 build-essential lib32z1 lib32ncurses6
-          /builds/stereotech/stefirmware/smoothieware/linux_install
-          /builds/stereotech/stefirmware/smoothieware/BuildShell
-          export PATH="/builds/stereotech/stefirmware/smoothieware/gcc-arm-none-eabi/bin:$PATH"
+          $GITHUB_WORKSPACE/linux_install
+          $GITHUB_WORKSPACE/BuildShell
+          export PATH="$GITHUB_WORKSPACE/gcc-arm-none-eabi/bin:$PATH"
           
       - name: Compile firmware
         run: make clean all
@@ -36,6 +36,7 @@ jobs:
   
   deploy:    
     runs-on: ubuntu-latest
+    needs: [build]
     steps:
       - uses: actions/download-artifact@v2.0.5
         with:

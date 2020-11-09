@@ -374,9 +374,11 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     stream->printf("Probe point 2 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
 
     float c_offset = 0;
-    float y1, y2, x1, x2;
-    std::tie(x1, y1) = actual_probe_points[0];
-    std::tie(x2, y2) = actual_probe_points[1];
+    float x1, x2;
+    x1 = std::get<0>(actual_probe_points[0]);
+    x2 = std::get<0>(actual_probe_points[1]);
+    //std::tie(x1, y1, z1) = actual_probe_points[0];
+    //std::tie(x2, y2, z2) = actual_probe_points[1];
     c_offset = 57.2958 * asinf((x2 - x1) / (big_part_length + small_part_length));
     //c_offset /= 3.0;
 

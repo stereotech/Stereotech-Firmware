@@ -367,23 +367,42 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
 
 void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
 {
-    float a_offset = 0;
     //Save second point
     float position[3];
     THEROBOT->get_axis_position(position);
     actual_probe_points[1] = std::make_tuple(position[0], position[1], position[2]);
     stream->printf("Probe point 2 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
 
+    float c_offset = 0;
+    float y1, y2, x1, x2;
+    std::tie(x1, y1) = actual_probe_points[0];
+    std::tie(x2, y2) = actual_probe_points[1];
+    c_offset = 57.2958 * asinf((x2 - x1) / (big_part_length + small_part_length));
+    //c_offset /= 3.0;
+
+    if (!isnan(c_offset))
+    {
+        string cmdc = string_format("G0 C%1.3f\n", c_offset);
+        Gcode cOffsetGcode(cmdc, &(StreamOutput::NullStream));
+        THEKERNEL->call_event(ON_GCODE_RECEIVED, &cOffsetGcode);
+        stream->printf("C axis offset is:%1.3f\n", c_offset);
+        stream->printf("Big part:%1.3f\n", big_part_length);
+        stream->printf("Small part:%1.3f\n", small_part_length);
+        Gcode homeC("G92 C0\n", &(StreamOutput::NullStream));
+        THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeC);
+    }
+    
+    float a_offset = 0;
     float z1, z2;
     z1 = std::get<2>(actual_probe_points[0]);
     z2 = std::get<2>(actual_probe_points[1]);
-    a_offset = -57.2958 * asinf((z2 - z1) / (big_part_length + small_part_length));
+    a_offset = -57.2958 * asinf((z2 - z1) / ((big_part_length + small_part_length) * cosf(c_offset / 57.2958));
     //a_offset /= 1.5;
 
     zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate());
     stream->printf("A axis offset is:%1.3f\n", a_offset);
-    stream->printf("Big part:%1.3f\n", big_part_length);
-    stream->printf("Small part:%1.3f\n", small_part_length);
+    //stream->printf("Big part:%1.3f\n", big_part_length);
+    //stream->printf("Small part:%1.3f\n", small_part_length);
     if (!isnan(a_offset))
     {
         string cmd = string_format("M206 A%1.3f\n", a_offset);
@@ -396,7 +415,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     Gcode zeroA("G0 A0\n", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &zeroA);
 
-    float c_offset = 0;
+    /*float c_offset = 0;
     float y1, y2, x1, x2;
     std::tie(x1, y1, z1) = actual_probe_points[0];
     std::tie(x2, y2, z2) = actual_probe_points[1];
@@ -411,7 +430,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
         stream->printf("C axis offset is:%1.3f\n", c_offset);
         Gcode homeC("G92 C0\n", &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeC);
-    }
+    }*/
 
     //Move to the third point
     float x, y, z;

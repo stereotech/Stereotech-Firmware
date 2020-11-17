@@ -1331,8 +1331,8 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
         //Calculating offset from target to rotation center
         offset[X_AXIS] = 0;
-        offset[Y_AXIS] = std::get<Y_AXIS>(wcs_offsets[1]) - this->machine_position[Y_AXIS]; // + std::get<Y_AXIS>(workpiece_offset) * sinf(this->machine_position[A_AXIS] * 1.5);
-        offset[Z_AXIS] = std::get<Z_AXIS>(wcs_offsets[1]) - this->machine_position[Z_AXIS]; // + std::get<Z_AXIS>(workpiece_offset) * cosf(this->machine_position[A_AXIS] * 1.5);
+        offset[Y_AXIS] = std::get<Y_AXIS>(wcs_offsets[1]) - this->machine_position[Y_AXIS] + std::get<Y_AXIS>(workpiece_offset) * sinf(this->machine_position[A_AXIS] * 1.5);
+        offset[Z_AXIS] = std::get<Z_AXIS>(wcs_offsets[1]) - this->machine_position[Z_AXIS] + std::get<Z_AXIS>(workpiece_offset) * cosf(this->machine_position[A_AXIS] * 1.5);
     }
 
     if (gcode->has_letter('F'))
@@ -1920,14 +1920,14 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     //check for condition where atan2 formula will fail due to everything canceling out exactly
     if ((this->arc_milestone[this->plane_axis_0] == target[this->plane_axis_0]) && (this->arc_milestone[this->plane_axis_1] == target[this->plane_axis_1]))
     {
-        if (is_clockwise)
-        { // set angular_travel to -2pi for a clockwise full circle
-            angular_travel = (-2 * PI);
-        }
-        else
-        { // set angular_travel to 2pi for a counterclockwise full circle
-            angular_travel = (2 * PI);
-        }
+        //if (is_clockwise)
+        //{ // set angular_travel to -2pi for a clockwise full circle
+        //    angular_travel = (-2 * PI);
+        //}
+        //else
+        //{ // set angular_travel to 2pi for a counterclockwise full circle
+        //    angular_travel = (2 * PI);
+        //}
     }
     else
     {
@@ -1954,6 +1954,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
             }
         }
     }
+    float deg_to_rad = 0.01745329251F;
+    angular_travel = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]) * 1.5;
 
     // Find the distance for this gcode
     float millimeters_of_travel = hypotf(angular_travel * radius, fabsf(linear_travel));

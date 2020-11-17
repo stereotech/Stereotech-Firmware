@@ -1322,7 +1322,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
     float not_compensated_target[n_motors];
     memcpy(not_compensated_target, target, n_motors * sizeof(float));
-    if (this->use_workpiece_offset)
+    if (this->use_workpiece_offset && target[A_AXIS] != this->machine_position[A_AXIS])
     {
         this->calculate_workpiece_offset(target);
         target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);

@@ -2098,7 +2098,7 @@ bool Robot::compute_arc(Gcode *gcode, const float offset[], const float target[]
 
     // Find the radius
     float radius = hypotf(offset[this->plane_axis_0], offset[this->plane_axis_1]);
-
+    radius = hypotf(std::get<Y_AXIS>(workpiece_offset), std::get<Z_AXIS>(workpiece_offset));
     // Set clockwise/counter-clockwise sign for mc_arc computations
     bool is_clockwise = false;
     if (motion_mode == CW_ARC)

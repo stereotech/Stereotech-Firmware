@@ -1330,9 +1330,9 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
 
         //Calculating offset from target to rotation center
-        offset[X_AXIS] = (std::get<X_AXIS>(wcs_offsets[1]) + std::get<X_AXIS>(wcs_offsets[2])) / 2 - this->arc_milestone[X_AXIS];
-        offset[Y_AXIS] = std::get<Y_AXIS>(wcs_offsets[1]) - this->arc_milestone[Y_AXIS];
-        offset[Z_AXIS] = std::get<Z_AXIS>(wcs_offsets[2]) - this->arc_milestone[Z_AXIS];
+        offset[X_AXIS] = 0;
+        offset[Y_AXIS] = std::get<Y_AXIS>(workpiece_offset) * sinf(this->machine_position[A_AXIS] * 1.5);
+        offset[Z_AXIS] = std::get<Z_AXIS>(workpiece_offset) * cosf(this->machine_position[A_AXIS] * 1.5);
     }
 
     if (gcode->has_letter('F'))
@@ -1384,8 +1384,8 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 
     // needed to act as start of next arc command
-    memcpy(arc_milestone, target, sizeof(arc_milestone));
-    //memcpy(arc_milestone, not_compensated_target, sizeof(arc_milestone));
+    //memcpy(arc_milestone, target, sizeof(arc_milestone));
+    memcpy(arc_milestone, not_compensated_target, sizeof(arc_milestone));
 
     if (moved)
     {
@@ -1499,7 +1499,7 @@ void Robot::reset_position_from_current_actuator_position()
 void Robot::calculate_workpiece_offset(const float target[])
 {
     float deg_to_rad = 0.01745329251F;
-    float delta_a = deg_to_rad * (target[A_AXIS]) * 1.5; // - machine_position[A_AXIS]);
+    float delta_a = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]) * 1.5; // - machine_position[A_AXIS]);
     float delta_sign = 1;
     if (delta_a != 0)
     {

@@ -1358,6 +1358,10 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
             delta_sign = delta_a / abs(delta_a);
         }
         moved = this->compute_arc(gcode, offset, target, delta_sign > 0 ? CCW_ARC : CW_ARC, delta_e);
+        if (moved)
+        {
+            reset_axis_position(not_compensated_target[X_AXIS], not_compensated_target[Y_AXIS], not_compensated_target[Z_AXIS]);
+        }
     }
     else
     {

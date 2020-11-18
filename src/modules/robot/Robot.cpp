@@ -1333,6 +1333,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         offset[X_AXIS] = 0;
         offset[Y_AXIS] = std::get<Y_AXIS>(wcs_offsets[1]) - target[Y_AXIS];
         offset[Z_AXIS] = std::get<Z_AXIS>(wcs_offsets[2]) - target[Z_AXIS];
+        gcode->stream->printf("Current workpiece offset is: X:%1.4f Y:%1.4f Z:%1.4f\n", offset[X_AXIS], offset[Y_AXIS], offset[Z_AXIS]);
     }
 
     if (gcode->has_letter('F'))
@@ -1915,18 +1916,27 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     float r_axis0 = -offset[this->plane_axis_0]; // Radius vector from center to start position
     float r_axis1 = -offset[this->plane_axis_1];
 
+    gcode->stream->printf("Center axis is: Y:%1.4f Z:%1.4f\n", center_axis0, center_axis1);
+    gcode->stream->printf("R axis is: Y:%1.4f Z:%1.4f\n", r_axis0, r_axis1);
+
     float angular_travel = 0;
     float deg_to_rad = 0.01745329251F;
     angular_travel = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]) * 1.5;
 
+    gcode->stream->printf("Angular travel is: %1.4f\n", angular_travel);
+
     float rt_axis0 = r_axis0 * cosf(angular_travel) - r_axis1 * sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
     float rt_axis1 = r_axis0 * sinf(angular_travel) + r_axis1 * cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
+
+    gcode->stream->printf("RT axis is: Y:%1.4f Z:%1.4f\n", rt_axis0, rt_axis1);
 
     float compensated_target[n_motors];
     memcpy(compensated_target, target, n_motors * sizeof(float));
 
     compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0;
     compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1;
+
+    gcode->stream->printf("compensated_target axis is: Y:%1.4f Z:%1.4f\n", compensated_target[this->plane_axis_0], compensated_target[this->plane_axis_1]);
 
     //check for condition where atan2 formula will fail due to everything canceling out exactly
     if ((this->arc_milestone[this->plane_axis_0] == compensated_target[this->plane_axis_0]) && (this->arc_milestone[this->plane_axis_1] == compensated_target[this->plane_axis_1]))

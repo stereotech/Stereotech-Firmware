@@ -1331,8 +1331,8 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
         //Calculating offset from target to rotation center
         offset[X_AXIS] = 0;
-        offset[Y_AXIS] = std::get<Y_AXIS>(wcs_offsets[1]) - this->machine_position[Y_AXIS] + std::get<Y_AXIS>(workpiece_offset) * sinf(this->machine_position[A_AXIS] * 1.5);
-        offset[Z_AXIS] = std::get<Z_AXIS>(wcs_offsets[1]) - this->machine_position[Z_AXIS] + std::get<Z_AXIS>(workpiece_offset) * cosf(this->machine_position[A_AXIS] * 1.5);
+        offset[Y_AXIS] = std::get<Y_AXIS>(wcs_offsets[1]) - this->machine_position[Y_AXIS];
+        offset[Z_AXIS] = std::get<Z_AXIS>(wcs_offsets[2]) - this->machine_position[Z_AXIS];
     }
 
     if (gcode->has_letter('F'))
@@ -1515,7 +1515,7 @@ void Robot::calculate_workpiece_offset(const float target[])
     float z_compensation = abs(std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
     float x = -delta_sign * cos_a * x_compensation;
     float y = -sin(delta_a) * y_compensation;
-    float z = -delta_sign * cos_a * z_compensation;
+    float z = -delta_sign * cos_a *;
     this->workpiece_offset = wcs_t(x, y, z);
 }
 
@@ -1914,11 +1914,22 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     float linear_travel = target[this->plane_axis_2] - this->arc_milestone[this->plane_axis_2];
     float r_axis0 = -offset[this->plane_axis_0]; // Radius vector from center to start position
     float r_axis1 = -offset[this->plane_axis_1];
-    float rt_axis0 = target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
-    float rt_axis1 = target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
+
     float angular_travel = 0;
+    float deg_to_rad = 0.01745329251F;
+    angular_travel = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]) * 1.5;
+
+    float rt_axis0 = r_axis0 * cosf(angular_travel) - r_axis1 * sinf(angular_travel);   //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
+    float rt_axis1 = r_axis0 * sinf(anangular_travel) + r_axis1 * cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
+
+    float compensated_target[n_motors];
+    memcpy(compensated_target, target, n_motors * sizeof(float));
+
+    compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0;
+    compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1;
+
     //check for condition where atan2 formula will fail due to everything canceling out exactly
-    if ((this->arc_milestone[this->plane_axis_0] == target[this->plane_axis_0]) && (this->arc_milestone[this->plane_axis_1] == target[this->plane_axis_1]))
+    if ((this->arc_milestone[this->plane_axis_0] == compensated_target[this->plane_axis_0]) && (this->arc_milestone[this->plane_axis_1] == compensated_target[this->plane_axis_1]))
     {
         //if (is_clockwise)
         //{ // set angular_travel to -2pi for a clockwise full circle
@@ -1934,7 +1945,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
         // Patch from GRBL Firmware - Christoph Baumann 04072015
         // CCW angle between position and target from circle center. Only one atan2() trig computation required.
         // Only run if not a full circle or angular travel will incorrectly result in 0.0f
-        angular_travel = atan2f(r_axis0 * rt_axis1 - r_axis1 * rt_axis0, r_axis0 * rt_axis0 + r_axis1 * rt_axis1);
+        //angular_travel = atan2f(r_axis0 * rt_axis1 - r_axis1 * rt_axis0, r_axis0 * rt_axis0 + r_axis1 * rt_axis1);
         if (plane_axis_2 == Y_AXIS)
         {
             is_clockwise = !is_clockwise;
@@ -1954,8 +1965,6 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
             }
         }
     }
-    float deg_to_rad = 0.01745329251F;
-    angular_travel = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]) * 1.5;
 
     // Find the distance for this gcode
     float millimeters_of_travel = hypotf(angular_travel * radius, fabsf(linear_travel));
@@ -2038,7 +2047,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
 
         float segment_delta[n_motors];
         for (int i = 0; i < n_motors; i++)
-            segment_delta[i] = (target[i] - machine_position[i]) / segments;
+            segment_delta[i] = (compensated_target[i] - machine_position[i]) / segments;
 
         // init array for all axis
         memcpy(arc_target, machine_position, n_motors * sizeof(float));
@@ -2086,7 +2095,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     }
 
     // Ensure last segment arrives at target location.
-    if (this->append_milestone(target, rate_mm_s))
+    if (this->append_milestone(compensated_target, rate_mm_s))
         moved = true;
 
     return moved;
@@ -2098,7 +2107,6 @@ bool Robot::compute_arc(Gcode *gcode, const float offset[], const float target[]
 
     // Find the radius
     float radius = hypotf(offset[this->plane_axis_0], offset[this->plane_axis_1]);
-    radius = hypotf(std::get<Y_AXIS>(workpiece_offset), std::get<Z_AXIS>(workpiece_offset));
     // Set clockwise/counter-clockwise sign for mc_arc computations
     bool is_clockwise = false;
     if (motion_mode == CW_ARC)

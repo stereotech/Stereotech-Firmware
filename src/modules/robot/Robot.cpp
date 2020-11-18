@@ -1324,15 +1324,15 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     memcpy(not_compensated_target, target, n_motors * sizeof(float));
     if (this->use_workpiece_offset && target[A_AXIS] != this->machine_position[A_AXIS])
     {
-        this->calculate_workpiece_offset(target);
-        target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);
-        target[Y_AXIS] += std::get<Y_AXIS>(workpiece_offset);
-        target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
+        //this->calculate_workpiece_offset(target);
+        //target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);
+        //target[Y_AXIS] += std::get<Y_AXIS>(workpiece_offset);
+        //target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
 
         //Calculating offset from target to rotation center
         offset[X_AXIS] = 0;
-        offset[Y_AXIS] = std::get<Y_AXIS>(wcs_offsets[1]) - this->machine_position[Y_AXIS];
-        offset[Z_AXIS] = std::get<Z_AXIS>(wcs_offsets[2]) - this->machine_position[Z_AXIS];
+        offset[Y_AXIS] = std::get<Y_AXIS>(wcs_offsets[1]) - target[Y_AXIS];
+        offset[Z_AXIS] = std::get<Z_AXIS>(wcs_offsets[2]) - target[Z_AXIS];
     }
 
     if (gcode->has_letter('F'))
@@ -1515,7 +1515,7 @@ void Robot::calculate_workpiece_offset(const float target[])
     float z_compensation = abs(std::get<Z_AXIS>(wcs_offsets[1]) - std::get<Z_AXIS>(wcs_offsets[2]));
     float x = -delta_sign * cos_a * x_compensation;
     float y = -sin(delta_a) * y_compensation;
-    float z = -delta_sign * cos_a *;
+    float z = -delta_sign * cos_a * z_compensation;
     this->workpiece_offset = wcs_t(x, y, z);
 }
 

@@ -1925,8 +1925,10 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
 
     gcode->stream->printf("Angular travel is: %1.4f\n", angular_travel);
 
-    float rt_axis0 = r_axis0 * cosf(angular_travel) - r_axis1 * sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
-    float rt_axis1 = r_axis0 * sinf(angular_travel) + r_axis1 * cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
+    float dir = is_clockwise ? -1.0F : 1.0F;
+
+    float rt_axis0 = r_axis0 * cosf(angular_travel) - dir * r_axis1 * sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
+    float rt_axis1 = dir * r_axis0 * sinf(angular_travel) + r_axis1 * cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
 
     gcode->stream->printf("RT axis is: Y:%1.4f Z:%1.4f\n", rt_axis0, rt_axis1);
 

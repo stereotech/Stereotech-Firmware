@@ -1919,8 +1919,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     float deg_to_rad = 0.01745329251F;
     angular_travel = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]) * 1.5;
 
-    float rt_axis0 = r_axis0 * cosf(angular_travel) - r_axis1 * sinf(angular_travel);   //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
-    float rt_axis1 = r_axis0 * sinf(anangular_travel) + r_axis1 * cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
+    float rt_axis0 = r_axis0 * cosf(angular_travel) - r_axis1 * sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
+    float rt_axis1 = r_axis0 * sinf(angular_travel) + r_axis1 * cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
 
     float compensated_target[n_motors];
     memcpy(compensated_target, target, n_motors * sizeof(float));

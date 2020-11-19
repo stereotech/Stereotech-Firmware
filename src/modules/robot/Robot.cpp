@@ -2058,6 +2058,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
         float cos_Ti;
         float linear_axis0_i;
         float linear_axis1_i;
+        float linear_axisi_i;
         float r_axisi;
         uint16_t i;
         int8_t count = 0;
@@ -2083,8 +2084,11 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
                 r_axisi = r_axis0 * sin_T + r_axis1 * cos_T;
                 r_axis0 = r_axis0 * cos_T - r_axis1 * sin_T;
                 r_axis1 = r_axisi;
+
+                linear_axisi_i = linear_axis0_i * sin_T + linear_axis0_i * cos_T;
                 linear_axis0_i = linear_axis0_i * cos_T - linear_axis0_i * sin_T;
-                linear_axis1_i = linear_axis0_i * sin_T + linear_axis0_i * cos_T;
+                linear_axis1_i = linear_axisi_i;
+
                 count++;
             }
             else

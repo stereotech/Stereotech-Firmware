@@ -2056,8 +2056,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
         float arc_target[n_motors];
         float sin_Ti;
         float cos_Ti;
-        float linear_axis0_i;
-        float linear_axis1_i;
+        float linear_axis0_i = linear_axis0_per_segment;
+        float linear_axis1_i = linear_axis1_per_segment;
         float linear_axisi_i;
         float r_axisi;
         uint16_t i;

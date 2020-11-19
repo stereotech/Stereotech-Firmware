@@ -2101,12 +2101,9 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
             }
 
             // Update arc_target location
-            arc_target[this->plane_axis_0] = center_axis0 + r_axis0;
-            arc_target[this->plane_axis_1] = center_axis1 + r_axis1;
+            arc_target[this->plane_axis_0] = center_axis0 + r_axis0 + linear_axis0_i;
             arc_target[this->plane_axis_1] = center_axis1 + r_axis1 + linear_axis1_i;
             arc_target[this->plane_axis_2] += linear_per_segment;
-            arc_target[this->plane_axis_0] += linear_axis0_i;
-            arc_target[this->plane_axis_1] += linear_axis1_i;
 
             //Handle other axes
             for (int j = A_AXIS; j < n_motors; j++)

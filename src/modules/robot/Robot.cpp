@@ -1331,8 +1331,8 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
         //Calculating offset from target to rotation center
         offset[X_AXIS] = 0;
-        float offset_y = std::get<Y_AXIS>(wcs_offsets[1]) - target[Y_AXIS];
-        float offset_z = std::get<Z_AXIS>(wcs_offsets[2]) - target[Z_AXIS];
+        float offset_y = std::get<Y_AXIS>(wcs_offsets[1]) - this->arc_milestone[Y_AXIS];
+        float offset_z = std::get<Z_AXIS>(wcs_offsets[2]) - this->arc_milestone[Z_AXIS];
         float deg_to_rad = 0.01745329251F;
         float angular_pos = deg_to_rad * this->machine_position[A_AXIS] * 1.5;
         offset[Y_AXIS] = offset_y * cosf(angular_pos) - offset_z * sinf(angular_pos);
@@ -1927,6 +1927,11 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     float deg_to_rad = 0.01745329251F;
     angular_travel = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]) * 1.5;
 
+    float linear_axis0 = target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0];
+    float linear_axis1 = target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1];
+
+    gcode->stream->printf("linear axis is: Y:%1.4f Z:%1.4f\n", linear_axis0, linear_axis1);
+
     gcode->stream->printf("Angular travel is: %1.4f\n", angular_travel);
 
     float rt_axis0 = r_axis0 * cosf(angular_travel) - r_axis1 * sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
@@ -1937,8 +1942,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     float compensated_target[n_motors];
     memcpy(compensated_target, target, n_motors * sizeof(float));
 
-    compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0;
-    compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1;
+    compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0 + linear_axis0;
+    compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1 + linear_axis1;
 
     gcode->stream->printf("compensated_target axis is: Y:%1.4f Z:%1.4f\n", compensated_target[this->plane_axis_0], compensated_target[this->plane_axis_1]);
 
@@ -1981,7 +1986,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     }
 
     // Find the distance for this gcode
-    float millimeters_of_travel = hypotf(angular_travel * radius, fabsf(linear_travel));
+    float ellipse_length = sqrtf((powf(radius + linear_axis0, 2) + powf(radius + linear_axis1, 2)) / 2);
+    float millimeters_of_travel = hypotf(angular_travel * ellipse_length, fabsf(linear_travel));
 
     if (!isnan(delta_e) && gcode->has_g && gcode->g == 1)
     {
@@ -2023,6 +2029,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     {
         float theta_per_segment = angular_travel / segments;
         float linear_per_segment = linear_travel / segments;
+        float linear_axis0_per_segment = linear_axis0 / segments;
+        float linear_axis1_per_segment = linear_axis1 / segments;
 
         /* Vector rotation by transformation matrix: r is the original vector, r_T is the rotated vector,
         and phi is the angle of rotation. Based on the solution approach by Jens Geisler.
@@ -2055,6 +2063,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
         float arc_target[n_motors];
         float sin_Ti;
         float cos_Ti;
+        float linear_axis0_i;
+        float linear_axis1_i;
         float r_axisi;
         uint16_t i;
         int8_t count = 0;
@@ -2090,6 +2100,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
                 sin_Ti = sinf(i * theta_per_segment);
                 r_axis0 = -offset[this->plane_axis_0] * cos_Ti + offset[this->plane_axis_1] * sin_Ti;
                 r_axis1 = -offset[this->plane_axis_0] * sin_Ti - offset[this->plane_axis_1] * cos_Ti;
+                linear_axis0_i = (linear_axis0_per_segment * i) * cos_Ti - (linear_axis1_per_segment * i) * sin_Ti;
+                linear_axis1_i = -(linear_axis0_per_segment * i) * sin_Ti + (linear_axis1_per_segment * i) * cos_Ti;
                 count = 0;
             }
 
@@ -2097,6 +2109,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
             arc_target[this->plane_axis_0] = center_axis0 + r_axis0;
             arc_target[this->plane_axis_1] = center_axis1 + r_axis1;
             arc_target[this->plane_axis_2] += linear_per_segment;
+            arc_target[this->plane_axis_0] += linear_axis0_i;
+            arc_target[this->plane_axis_1] += linear_axis1_i;
 
             //Handle other axes
             for (int j = A_AXIS; j < n_motors; j++)

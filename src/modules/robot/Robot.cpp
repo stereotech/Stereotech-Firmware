@@ -111,7 +111,7 @@ Robot::Robot()
     this->inch_mode = false;
     this->absolute_mode = true;
     this->e_absolute_mode = true;
-    this->select_plane(X_AXIS, Y_AXIS, Z_AXIS);
+    this->select_plane(Y_AXIS, Z_AXIS, X_AXIS);
     memset(this->machine_position, 0, sizeof machine_position);
     memset(this->compensated_machine_position, 0, sizeof compensated_machine_position);
     memset(this->babysteps, 0, sizeof babysteps);
@@ -1320,14 +1320,17 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 #endif
 
-    float not_compensated_target[n_motors];
-    memcpy(not_compensated_target, target, n_motors * sizeof(float));
-    if (this->use_workpiece_offset)
+    if (this->use_workpiece_offset && target[A_AXIS] != this->machine_position[A_AXIS])
     {
-        this->calculate_workpiece_offset(target);
-        target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);
-        target[Y_AXIS] += std::get<Y_AXIS>(workpiece_offset);
-        target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
+        //Calculating offset from target to rotation center
+        offset[X_AXIS] = 0;
+        float offset_y = std::get<Y_AXIS>(wcs_offsets[1]) - this->arc_milestone[Y_AXIS];
+        float offset_z = std::get<Z_AXIS>(wcs_offsets[2]) - this->arc_milestone[Z_AXIS];
+        float deg_to_rad = 0.01745329251F;
+        float angular_pos = deg_to_rad * this->machine_position[A_AXIS] * 1.5;
+        offset[Y_AXIS] = offset_y * cosf(angular_pos) - offset_z * sinf(angular_pos);
+        offset[Z_AXIS] = offset_y * sinf(angular_pos) + offset_z * cosf(angular_pos);
+        gcode->stream->printf("Current workpiece offset is: X:%1.4f Y:%1.4f Z:%1.4f\n", offset[X_AXIS], offset[Y_AXIS], offset[Z_AXIS]);
     }
 
     if (gcode->has_letter('F'))
@@ -1344,35 +1347,53 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
     bool moved = false;
 
-    // Perform any physical actions
-    switch (motion_mode)
+    if (this->use_workpiece_offset && target[A_AXIS] != this->machine_position[A_AXIS])
     {
-    case NONE:
-        break;
+        float delta_a = target[A_AXIS] - this->machine_position[A_AXIS];
+        float delta_sign = 1;
+        if (delta_a != 0)
+        {
+            delta_sign = delta_a / abs(delta_a);
+        }
+        moved = this->compute_arc(gcode, offset, target, delta_sign > 0 ? CCW_ARC : CW_ARC, delta_e);
+        if (moved)
+        {
+            reset_axis_position(target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
+        }
+    }
+    else
+    {
+        // Perform any physical actions
+        switch (motion_mode)
+        {
+        case NONE:
+            break;
 
-    case SEEK:
-        moved = this->append_line(gcode, target, this->seek_rate / seconds_per_minute, delta_e);
-        break;
+        case SEEK:
+            moved = this->append_line(gcode, target, this->seek_rate / seconds_per_minute, delta_e);
+            break;
 
-    case LINEAR:
-        moved = this->append_line(gcode, target, this->feed_rate / seconds_per_minute, delta_e);
-        break;
+        case LINEAR:
+            moved = this->append_line(gcode, target, this->feed_rate / seconds_per_minute, delta_e);
+            break;
 
-    case CW_ARC:
-    case CCW_ARC:
-        // Note arcs are not currently supported by extruder based machines, as 3D slicers do not use arcs (G2/G3)
-        moved = this->compute_arc(gcode, offset, target, motion_mode);
-        break;
+        case CW_ARC:
+        case CCW_ARC:
+            // Note arcs are not currently supported by extruder based machines, as 3D slicers do not use arcs (G2/G3)
+            moved = this->compute_arc(gcode, offset, target, motion_mode, delta_e);
+            break;
+        }
     }
 
     // needed to act as start of next arc command
+    //memcpy(arc_milestone, target, sizeof(arc_milestone));
     memcpy(arc_milestone, target, sizeof(arc_milestone));
 
     if (moved)
     {
         // set machine_position to the calculated target
         //memcpy(machine_position, target, n_motors * sizeof(float));
-        memcpy(machine_position, not_compensated_target, n_motors * sizeof(float));
+        memcpy(machine_position, target, n_motors * sizeof(float));
     }
 }
 
@@ -1480,7 +1501,7 @@ void Robot::reset_position_from_current_actuator_position()
 void Robot::calculate_workpiece_offset(const float target[])
 {
     float deg_to_rad = 0.01745329251F;
-    float delta_a = deg_to_rad * (target[A_AXIS]); // - machine_position[A_AXIS]);
+    float delta_a = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]) * 1.5; // - machine_position[A_AXIS]);
     float delta_sign = 1;
     if (delta_a != 0)
     {
@@ -1873,7 +1894,7 @@ bool Robot::append_line(Gcode *gcode, const float target[], float rate_mm_s, flo
 
 // Append an arc to the queue ( cutting it into segments as needed )
 // TODO does not support any E parameters so cannot be used for 3D printing.
-bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[], float radius, bool is_clockwise)
+bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[], float radius, bool is_clockwise, float delta_e)
 {
     float rate_mm_s = this->feed_rate / seconds_per_minute;
     // catch negative or zero feed rates and return the same error as GRBL does
@@ -1891,27 +1912,54 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     float linear_travel = target[this->plane_axis_2] - this->arc_milestone[this->plane_axis_2];
     float r_axis0 = -offset[this->plane_axis_0]; // Radius vector from center to start position
     float r_axis1 = -offset[this->plane_axis_1];
-    float rt_axis0 = target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
-    float rt_axis1 = target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
-    float angular_travel = 0;
+
+    gcode->stream->printf("Center axis is: Y:%1.4f Z:%1.4f\n", center_axis0, center_axis1);
+    gcode->stream->printf("R axis is: Y:%1.4f Z:%1.4f\n", r_axis0, r_axis1);
+
+    float deg_to_rad = 0.01745329251F;
+    float angular_travel = deg_to_rad * (target[A_AXIS] - this->machine_position[A_AXIS]) * 1.5;
+    float angular_target = deg_to_rad * target[A_AXIS] * 1.5;
+
+    float linear_delta_axis0 = target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0];
+    float linear_delta_axis1 = target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1];
+    float linear_axis0 = linear_delta_axis0 * cosf(angular_target) - linear_delta_axis1 * sinf(angular_target);
+    float linear_axis1 = linear_delta_axis0 * sinf(angular_target) + linear_delta_axis1 * cosf(angular_target);
+
+    gcode->stream->printf("linear axis is: Y:%1.4f Z:%1.4f\n", linear_axis0, linear_axis1);
+
+    gcode->stream->printf("Angular travel is: %1.4f\n", angular_travel);
+
+    float rt_axis0 = (r_axis0)*cosf(angular_travel) - (r_axis1)*sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
+    float rt_axis1 = (r_axis0)*sinf(angular_travel) + (r_axis1)*cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
+
+    gcode->stream->printf("RT axis is: Y:%1.4f Z:%1.4f\n", rt_axis0, rt_axis1);
+
+    float compensated_target[n_motors];
+    memcpy(compensated_target, target, n_motors * sizeof(float));
+
+    compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0 + linear_axis0;
+    compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1 + linear_axis1;
+
+    gcode->stream->printf("compensated_target axis is: Y:%1.4f Z:%1.4f\n", compensated_target[this->plane_axis_0], compensated_target[this->plane_axis_1]);
+
     //check for condition where atan2 formula will fail due to everything canceling out exactly
-    if ((this->arc_milestone[this->plane_axis_0] == target[this->plane_axis_0]) && (this->arc_milestone[this->plane_axis_1] == target[this->plane_axis_1]))
+    if ((this->arc_milestone[this->plane_axis_0] == compensated_target[this->plane_axis_0]) && (this->arc_milestone[this->plane_axis_1] == compensated_target[this->plane_axis_1]))
     {
-        if (is_clockwise)
-        { // set angular_travel to -2pi for a clockwise full circle
-            angular_travel = (-2 * PI);
-        }
-        else
-        { // set angular_travel to 2pi for a counterclockwise full circle
-            angular_travel = (2 * PI);
-        }
+        //if (is_clockwise)
+        //{ // set angular_travel to -2pi for a clockwise full circle
+        //    angular_travel = (-2 * PI);
+        //}
+        //else
+        //{ // set angular_travel to 2pi for a counterclockwise full circle
+        //    angular_travel = (2 * PI);
+        //}
     }
     else
     {
         // Patch from GRBL Firmware - Christoph Baumann 04072015
         // CCW angle between position and target from circle center. Only one atan2() trig computation required.
         // Only run if not a full circle or angular travel will incorrectly result in 0.0f
-        angular_travel = atan2f(r_axis0 * rt_axis1 - r_axis1 * rt_axis0, r_axis0 * rt_axis0 + r_axis1 * rt_axis1);
+        //angular_travel = atan2f(r_axis0 * rt_axis1 - r_axis1 * rt_axis0, r_axis0 * rt_axis0 + r_axis1 * rt_axis1);
         if (plane_axis_2 == Y_AXIS)
         {
             is_clockwise = !is_clockwise;
@@ -1933,12 +1981,21 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     }
 
     // Find the distance for this gcode
-    float millimeters_of_travel = hypotf(angular_travel * radius, fabsf(linear_travel));
+    float ellipse_length = sqrtf((powf(radius + linear_axis0, 2) + powf(radius + linear_axis1, 2)) / 2);
+    float millimeters_of_travel = hypotf(angular_travel * ellipse_length, fabsf(linear_travel));
 
-    // We don't care about non-XYZ moves ( for example the extruder produces some of those )
+    if (!isnan(delta_e) && gcode->has_g && gcode->g == 1)
+    {
+        float data[2] = {delta_e, rate_mm_s / millimeters_of_travel};
+        if (PublicData::set_value(extruder_checksum, target_checksum, data))
+        {
+            rate_mm_s *= data[1]; // adjust the feedrate
+        }
+    }
+
     if (millimeters_of_travel < 0.000001F)
     {
-        return false;
+        return this->append_milestone(target, rate_mm_s);
     }
 
     // limit segments by maximum arc error
@@ -1967,6 +2024,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     {
         float theta_per_segment = angular_travel / segments;
         float linear_per_segment = linear_travel / segments;
+        float linear_axis0_per_segment = linear_axis0 / segments;
+        float linear_axis1_per_segment = linear_axis1 / segments;
 
         /* Vector rotation by transformation matrix: r is the original vector, r_T is the rotated vector,
         and phi is the angle of rotation. Based on the solution approach by Jens Geisler.
@@ -1999,9 +2058,16 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
         float arc_target[n_motors];
         float sin_Ti;
         float cos_Ti;
+        float linear_axis0_i = linear_axis0_per_segment;
+        float linear_axis1_i = linear_axis1_per_segment;
+        float linear_axisi_i;
         float r_axisi;
         uint16_t i;
         int8_t count = 0;
+
+        float segment_delta[n_motors];
+        for (int i = 0; i < n_motors; i++)
+            segment_delta[i] = (compensated_target[i] - machine_position[i]) / segments;
 
         // init array for all axis
         memcpy(arc_target, machine_position, n_motors * sizeof(float));
@@ -2020,6 +2086,11 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
                 r_axisi = r_axis0 * sin_T + r_axis1 * cos_T;
                 r_axis0 = r_axis0 * cos_T - r_axis1 * sin_T;
                 r_axis1 = r_axisi;
+
+                //linear_axisi_i = linear_axis0_i * sin_T + linear_axis1_i * cos_T;
+                //linear_axis0_i = linear_axis0_i * cos_T - linear_axis1_i * sin_T;
+                //linear_axis1_i = linear_axisi_i;
+
                 count++;
             }
             else
@@ -2030,13 +2101,21 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
                 sin_Ti = sinf(i * theta_per_segment);
                 r_axis0 = -offset[this->plane_axis_0] * cos_Ti + offset[this->plane_axis_1] * sin_Ti;
                 r_axis1 = -offset[this->plane_axis_0] * sin_Ti - offset[this->plane_axis_1] * cos_Ti;
+                //linear_axis0_i = (linear_axis0_per_segment * i) * cos_Ti - (linear_axis1_per_segment * i) * sin_Ti;
+                //linear_axis1_i = (linear_axis0_per_segment * i) * sin_Ti + (linear_axis1_per_segment * i) * cos_Ti;
                 count = 0;
             }
 
+            linear_axis0_i = linear_axis0_per_segment * i;
+            linear_axis1_i = linear_axis1_per_segment * i;
             // Update arc_target location
-            arc_target[this->plane_axis_0] = center_axis0 + r_axis0;
-            arc_target[this->plane_axis_1] = center_axis1 + r_axis1;
+            arc_target[this->plane_axis_0] = center_axis0 + r_axis0 + linear_axis0_i;
+            arc_target[this->plane_axis_1] = center_axis1 + r_axis1 + linear_axis1_i;
             arc_target[this->plane_axis_2] += linear_per_segment;
+
+            //Handle other axes
+            for (int j = A_AXIS; j < n_motors; j++)
+                arc_target[j] += segment_delta[j];
 
             // Append this segment to the queue
             bool b = this->append_milestone(arc_target, rate_mm_s);
@@ -2045,19 +2124,18 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     }
 
     // Ensure last segment arrives at target location.
-    if (this->append_milestone(target, rate_mm_s))
+    if (this->append_milestone(compensated_target, rate_mm_s))
         moved = true;
 
     return moved;
 }
 
 // Do the math for an arc and add it to the queue
-bool Robot::compute_arc(Gcode *gcode, const float offset[], const float target[], enum MOTION_MODE_T motion_mode)
+bool Robot::compute_arc(Gcode *gcode, const float offset[], const float target[], enum MOTION_MODE_T motion_mode, float delta_e)
 {
 
     // Find the radius
     float radius = hypotf(offset[this->plane_axis_0], offset[this->plane_axis_1]);
-
     // Set clockwise/counter-clockwise sign for mc_arc computations
     bool is_clockwise = false;
     if (motion_mode == CW_ARC)
@@ -2066,7 +2144,7 @@ bool Robot::compute_arc(Gcode *gcode, const float offset[], const float target[]
     }
 
     // Append arc
-    return this->append_arc(gcode, target, offset, radius, is_clockwise);
+    return this->append_arc(gcode, target, offset, radius, is_clockwise, delta_e);
 }
 
 float Robot::theta(float x, float y)

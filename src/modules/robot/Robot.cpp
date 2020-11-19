@@ -1918,25 +1918,28 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
 
     float angular_travel = 0;
     float deg_to_rad = 0.01745329251F;
-    angular_travel = deg_to_rad * (target[A_AXIS] - machine_position[A_AXIS]) * 1.5;
+    angular_travel = deg_to_rad * (target[A_AXIS] - this->arc_milestone[A_AXIS]) * 1.5;
+    float angular_target = deg_to_rad * target[A_AXIS] * 1.5;
 
-    float linear_axis0 = target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0];
-    float linear_axis1 = target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1];
+    float linear_delta_axis0 = target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0];
+    float linear_delta_axis1 = target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1];
+    float linear_axis0 = linear_delta_axis0 * cosf(angular_target) - linear_delta_axis1 * sinf(angular_target);
+    float linear_axis1 = linear_delta_axis0 * sinf(angular_target) + linear_delta_axis1 * cosf(angular_target);
 
     gcode->stream->printf("linear axis is: Y:%1.4f Z:%1.4f\n", linear_axis0, linear_axis1);
 
     gcode->stream->printf("Angular travel is: %1.4f\n", angular_travel);
 
-    float rt_axis0 = (r_axis0 + linear_axis0) * cosf(angular_travel) - (r_axis1 + linear_axis1) * sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
-    float rt_axis1 = (r_axis0 + linear_axis0) * sinf(angular_travel) + (r_axis1 + linear_axis1) * cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
+    float rt_axis0 = (r_axis0)*cosf(angular_travel) - (r_axis1)*sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
+    float rt_axis1 = (r_axis0)*sinf(angular_travel) + (r_axis1)*cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
 
     gcode->stream->printf("RT axis is: Y:%1.4f Z:%1.4f\n", rt_axis0, rt_axis1);
 
     float compensated_target[n_motors];
     memcpy(compensated_target, target, n_motors * sizeof(float));
 
-    compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0;
-    compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1;
+    compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0 + linear_axis0;
+    compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1 + linear_axis1;
 
     gcode->stream->printf("compensated_target axis is: Y:%1.4f Z:%1.4f\n", compensated_target[this->plane_axis_0], compensated_target[this->plane_axis_1]);
 
@@ -2085,9 +2088,9 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
                 r_axis0 = r_axis0 * cos_T - r_axis1 * sin_T;
                 r_axis1 = r_axisi;
 
-                linear_axisi_i = linear_axis0_i * sin_T + linear_axis1_i * cos_T;
-                linear_axis0_i = linear_axis0_i * cos_T - linear_axis1_i * sin_T;
-                linear_axis1_i = linear_axisi_i;
+                //linear_axisi_i = linear_axis0_i * sin_T + linear_axis1_i * cos_T;
+                //linear_axis0_i = linear_axis0_i * cos_T - linear_axis1_i * sin_T;
+                //linear_axis1_i = linear_axisi_i;
 
                 count++;
             }
@@ -2099,11 +2102,13 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
                 sin_Ti = sinf(i * theta_per_segment);
                 r_axis0 = -offset[this->plane_axis_0] * cos_Ti + offset[this->plane_axis_1] * sin_Ti;
                 r_axis1 = -offset[this->plane_axis_0] * sin_Ti - offset[this->plane_axis_1] * cos_Ti;
-                linear_axis0_i = (linear_axis0_per_segment * i) * cos_Ti - (linear_axis1_per_segment * i) * sin_Ti;
-                linear_axis1_i = (linear_axis0_per_segment * i) * sin_Ti + (linear_axis1_per_segment * i) * cos_Ti;
+                //linear_axis0_i = (linear_axis0_per_segment * i) * cos_Ti - (linear_axis1_per_segment * i) * sin_Ti;
+                //linear_axis1_i = (linear_axis0_per_segment * i) * sin_Ti + (linear_axis1_per_segment * i) * cos_Ti;
                 count = 0;
             }
 
+            linear_axis0_i = linear_axis0_per_segment * i;
+            linear_axis1_i = linear_axis1_per_segment * i;
             // Update arc_target location
             arc_target[this->plane_axis_0] = center_axis0 + r_axis0 + linear_axis0_i;
             arc_target[this->plane_axis_1] = center_axis1 + r_axis1 + linear_axis1_i;

@@ -1320,15 +1320,8 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 #endif
 
-    float not_compensated_target[n_motors];
-    memcpy(not_compensated_target, target, n_motors * sizeof(float));
     if (this->use_workpiece_offset && target[A_AXIS] != this->machine_position[A_AXIS])
     {
-        //this->calculate_workpiece_offset(target);
-        //target[X_AXIS] += std::get<X_AXIS>(workpiece_offset);
-        //target[Y_AXIS] += std::get<Y_AXIS>(workpiece_offset);
-        //target[Z_AXIS] += std::get<Z_AXIS>(workpiece_offset);
-
         //Calculating offset from target to rotation center
         offset[X_AXIS] = 0;
         float offset_y = std::get<Y_AXIS>(wcs_offsets[1]) - this->arc_milestone[Y_AXIS];
@@ -1365,7 +1358,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         moved = this->compute_arc(gcode, offset, target, delta_sign > 0 ? CCW_ARC : CW_ARC, delta_e);
         if (moved)
         {
-            reset_axis_position(not_compensated_target[X_AXIS], not_compensated_target[Y_AXIS], not_compensated_target[Z_AXIS]);
+            reset_axis_position(target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
         }
     }
     else
@@ -1394,13 +1387,13 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
     // needed to act as start of next arc command
     //memcpy(arc_milestone, target, sizeof(arc_milestone));
-    memcpy(arc_milestone, not_compensated_target, sizeof(arc_milestone));
+    memcpy(arc_milestone, target, sizeof(arc_milestone));
 
     if (moved)
     {
         // set machine_position to the calculated target
         //memcpy(machine_position, target, n_motors * sizeof(float));
-        memcpy(machine_position, not_compensated_target, n_motors * sizeof(float));
+        memcpy(machine_position, target, n_motors * sizeof(float));
     }
 }
 
@@ -1934,16 +1927,16 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
 
     gcode->stream->printf("Angular travel is: %1.4f\n", angular_travel);
 
-    float rt_axis0 = r_axis0 * cosf(angular_travel) - r_axis1 * sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
-    float rt_axis1 = r_axis0 * sinf(angular_travel) + r_axis1 * cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
+    float rt_axis0 = (r_axis0 + linear_axis0) * cosf(angular_travel) - (r_axis1 + linear_axis1) * sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
+    float rt_axis1 = (r_axis0 + linear_axis0) * sinf(angular_travel) + (r_axis1 + linear_axis1) * cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
 
     gcode->stream->printf("RT axis is: Y:%1.4f Z:%1.4f\n", rt_axis0, rt_axis1);
 
     float compensated_target[n_motors];
     memcpy(compensated_target, target, n_motors * sizeof(float));
 
-    compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0 + linear_axis0;
-    compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1 + linear_axis1;
+    compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0;
+    compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1;
 
     gcode->stream->printf("compensated_target axis is: Y:%1.4f Z:%1.4f\n", compensated_target[this->plane_axis_0], compensated_target[this->plane_axis_1]);
 
@@ -2090,6 +2083,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
                 r_axisi = r_axis0 * sin_T + r_axis1 * cos_T;
                 r_axis0 = r_axis0 * cos_T - r_axis1 * sin_T;
                 r_axis1 = r_axisi;
+                linear_axis0_i = (linear_axis0_per_segment * i) * cos_T - (linear_axis1_per_segment * i) * sin_T;
+                linear_axis1_i = (linear_axis0_per_segment * i) * sin_T + (linear_axis1_per_segment * i) * cos_T;
                 count++;
             }
             else

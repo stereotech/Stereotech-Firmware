@@ -1916,9 +1916,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     gcode->stream->printf("Center axis is: Y:%1.4f Z:%1.4f\n", center_axis0, center_axis1);
     gcode->stream->printf("R axis is: Y:%1.4f Z:%1.4f\n", r_axis0, r_axis1);
 
-    float angular_travel = 0;
     float deg_to_rad = 0.01745329251F;
-    angular_travel = deg_to_rad * (target[A_AXIS] - this->arc_milestone[A_AXIS]) * 1.5;
+    float angular_travel = deg_to_rad * (target[A_AXIS] - this->machine_position[A_AXIS]) * 1.5;
     float angular_target = deg_to_rad * target[A_AXIS] * 1.5;
 
     float linear_delta_axis0 = target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0];

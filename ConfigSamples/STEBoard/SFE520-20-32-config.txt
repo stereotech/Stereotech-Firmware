@@ -21,7 +21,7 @@ alpha_steps_per_mm                           640               # Steps per mm fo
 beta_steps_per_mm                            640               # Steps per mm for beta ( Y ) stepper
 gamma_steps_per_mm                           800             # Steps per mm for gamma ( Z ) stepper
 delta_steps_per_mm                           40
-epsilon_steps_per_mm                         40
+epsilon_steps_per_mm                         200
 zeta_steps_per_mm                            80
 
 # Planner module configuration : Look-ahead and acceleration configuration
@@ -59,9 +59,9 @@ delta_dir_pin                                1.14             # Pin for delta st
 delta_en_pin                                 1.16             # Pin for delta enable
 delta_max_rate                               7200.0          # Maxmimum rate in mm/min
 
-epsilon_step_pin                             2.11               # Pin for epsilon stepper step signal
-epsilon_dir_pin                              1.30!             # Pin for epsilon stepper direction, add '!' to reverse direction
-epsilon_en_pin                               2.12              # Pin for epsilon enable
+epsilon_step_pin                             2.8 #2.11               # Pin for epsilon stepper step signal
+epsilon_dir_pin                              2.13#1.30!             # Pin for epsilon stepper direction, add '!' to reverse direction
+epsilon_en_pin                               4.29#2.12              # Pin for epsilon enable
 epsilon_max_rate                             7200.0          # Maxmimum rate in mm/min
 
 zeta_step_pin                                1.18              # Pin for zeta stepper step signal
@@ -88,9 +88,9 @@ extruder.hotend2.default_feed_rate              600          # Default rate ( mm
 extruder.hotend2.acceleration                   500          # Acceleration for the stepper motor, as of 0.6, arbitrary ratio
 extruder.hotend2.max_speed                      50           # mm/s
 
-extruder.hotend2.step_pin                       2.8          # Pin for extruder step signal
-extruder.hotend2.dir_pin                        2.13         # Pin for extruder dir signal ( add '!' to reverse direction )
-extruder.hotend2.en_pin                         4.29         # Pin for extruder enable signal
+extruder.hotend2.step_pin                      2.11 #2.8          # Pin for extruder step signal
+extruder.hotend2.dir_pin                       1.30 #2.13         # Pin for extruder dir signal ( add '!' to reverse direction )
+extruder.hotend2.en_pin                        2.12 #4.29         # Pin for extruder enable signal
 
 #extruder.hotend2.x_offset                       0            # x offset from origin in mm
 #extruder.hotend2.y_offset                       25.0         # y offset from origin in mm

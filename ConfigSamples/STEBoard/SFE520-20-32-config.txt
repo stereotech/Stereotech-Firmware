@@ -62,7 +62,7 @@ delta_max_rate                               7200.0          # Maxmimum rate in 
 epsilon_step_pin                             2.8 #2.11               # Pin for epsilon stepper step signal
 epsilon_dir_pin                              2.13#1.30!             # Pin for epsilon stepper direction, add '!' to reverse direction
 epsilon_en_pin                               4.29#2.12              # Pin for epsilon enable
-epsilon_max_rate                             7200.0          # Maxmimum rate in mm/min
+epsilon_max_rate                             120.0          # Maxmimum rate in mm/min
 
 zeta_step_pin                                1.18              # Pin for zeta stepper step signal
 zeta_dir_pin                                 1.17!              # Pin for zeta stepper direction, add '!' to reverse direction

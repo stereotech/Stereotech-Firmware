@@ -9,6 +9,7 @@ class LedStrip : public Module
 public:
   LedStrip();
   void on_module_loaded();
+  void on_halt(void *argument);
   void on_config_reload(void *argument);
   void on_gcode_received(void *argument);
 

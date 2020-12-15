@@ -48,11 +48,8 @@ void LedStrip::on_module_loaded()
 
 void LedStrip::on_halt(void *argument)
 {
-    if (argument == nullptr)
-    {
-        //turn red on error
-        this->set_color(255.0F, 0.0F, 0.0F);
-    }
+    //turn red on error
+    this->set_color(255.0F, 0.0F, 0.0F);
 }
 
 void LedStrip::on_config_reload(void *argument)

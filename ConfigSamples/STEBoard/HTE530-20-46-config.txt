@@ -280,16 +280,16 @@ leveling-strategy.five-axis.enable                     true
 leveling-strategy.five-axis.home_first                 true
 leveling-strategy.five-axis.big_part_length            27.8
 leveling-strategy.five-axis.small_part_length          22.2
-leveling-strategy.five-axis.point1                     100.0,140.0,130.0
-leveling-strategy.five-axis.point2                     100.0,90.0,130.0
-leveling-strategy.five-axis.point3                     100.0,140.0,130.0
-leveling-strategy.five-axis.point4                     150.0,140.0,130.0
-leveling-strategy.five-axis.point5                     100.0,140.0,130.0
-leveling-strategy.five-axis.point6                     100.0,140.0,130.0
-leveling-strategy.five-axis.point7                     100.0,90.0,130.0
-leveling-strategy.five-axis.point8                     100.0,83.0,145.0
-#leveling-strategy.five-axis.point9                    100.0,83.0,130.0
-#leveling-strategy.five-axis.point10                   100.0,75.0,80.0
+leveling-strategy.five-axis.point1                     150.0,240.0,120.0
+leveling-strategy.five-axis.point2                     150.0,190.0,120.0
+leveling-strategy.five-axis.point3                     150.0,240.0,120.0
+leveling-strategy.five-axis.point4                     200.0,240.0,120.0
+leveling-strategy.five-axis.point5                     150.0,240.0,120.0
+leveling-strategy.five-axis.point6                     150.0,240.0,120.0
+leveling-strategy.five-axis.point7                     150.0,190.0,120.0
+leveling-strategy.five-axis.point8                     150.0,83.0,145.0
+#leveling-strategy.five-axis.point9                    150.0,83.0,120.0
+#leveling-strategy.five-axis.point10                   150.0,75.0,70.0
 
 panel.enable                                 false             # Set to true to enable the panel code
 network.enable                               false            # Enable the ethernet network services

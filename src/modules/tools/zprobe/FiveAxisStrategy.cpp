@@ -382,6 +382,9 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     c_offset = 57.2958 * asinf((x2 - x1) / (big_part_length + small_part_length));
     c_offset /= 3.0;
 
+    Gcode homeC("G92 C0\n", &(StreamOutput::NullStream));
+    THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeC);
+
     if (!isnan(c_offset))
     {
         string cmdc = string_format("G0 C%1.3f\n", c_offset);
@@ -393,7 +396,7 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
         Gcode homeC("G92 C0\n", &(StreamOutput::NullStream));
         THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeC);
     }
-    
+
     float a_offset = 0;
     float z1, z2;
     z1 = std::get<2>(actual_probe_points[0]);

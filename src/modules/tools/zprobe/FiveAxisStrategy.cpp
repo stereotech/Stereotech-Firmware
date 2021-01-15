@@ -151,7 +151,25 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
             }
             return true;
         }
-        if (gcode->m == 370 || gcode->m == 561)
+        else if (gcode->m == 565)
+        {
+            int idx = 0;
+            float value = 0;
+            if (gcode->has_letter('S'))
+                idx = gcode->get_value('S');
+            if (gcode->has_letter('P'))
+                value = gcode->get_value('P');
+            if (idx >= 0 && idx <= 9)
+            {
+                calibration[idx] = value;
+            }
+            else
+            {
+                gcode->stream->printf("only 10 calibration values allowed S0-S9\n");
+            }
+            return true;
+        }
+        else if (gcode->m == 370 || gcode->m == 561)
         {
             setFirstAdjustFunction(false);
             reset_calibr();
@@ -203,6 +221,31 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
                 stepNum = gcode->get_uint('S');
             gotoStep(stepNum, gcode->stream);
             return true;
+        }
+        else if (gcode->m == 1006)
+        {
+            uint8_t functionNum = 0;
+            uint8_t enable = 0;
+            if (gcode->has_letter('S'))
+                functionNum = gcode->get_uint('S');
+            if (gcode->has_letter('P'))
+                enable = gcode->get_uint('P');
+            if (functionNum == 0)
+            {
+                setFirstAdjustFunction(enable > 0);
+            }
+            else if (functionNum == 1)
+            {
+                setSecondAdjustFunction(enable > 0);
+            }
+            else if (functionNum == 2)
+            {
+                setFinalAdjustFunction(enable > 0);
+            }
+            else
+            {
+                gcode->stream->printf(";Wrong function number\n");
+            }
         }
     }
     return false;

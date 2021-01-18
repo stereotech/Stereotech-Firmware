@@ -838,7 +838,7 @@ void FiveAxisStrategy::firstCompensationFunction(float *target, bool inverse)
     float r = this->big_part_length + this->small_part_length;
     if (inverse)
     {
-        target[X_AXIS] -= r * sin_b * sin_a + 2 * r * r * cos_b * cos_b2 * cos_a;
+        target[X_AXIS] -= r * sin_b * sin_a + calibration[B] / abs(calibration[B]) * 2 * r * r * cos_b * cos_b2 * cos_a;
         target[Y_AXIS] -= r * cos_b * sin_a;
         target[Z_AXIS] += 2 * r * r * cos_b * abs(sin_b2) * cos_a;
         //THEKERNEL->streams("FirstFunction input: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
@@ -851,7 +851,7 @@ void FiveAxisStrategy::firstCompensationFunction(float *target, bool inverse)
     else
     {
 
-        target[X_AXIS] += r * sin_b * sin_a + 2 * r * r * cos_b * cos_b2 * cos_a;
+        target[X_AXIS] += r * sin_b * sin_a + calibration[B] / abs(calibration[B]) * 2 * r * r * cos_b * cos_b2 * cos_a;
         target[Y_AXIS] += r * cos_b * sin_a;
         target[Z_AXIS] -= 2 * r * r * cos_b * abs(sin_b2) * cos_a;
         //THEKERNEL->streams("FirstFunction input: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);

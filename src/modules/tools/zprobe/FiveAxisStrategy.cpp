@@ -767,7 +767,7 @@ void FiveAxisStrategy::makeHome()
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &gc);
 }
 
-void FiveAxisStrategy::first setFirstAdjustFunction(bool on)
+void FiveAxisStrategy::setFirstAdjustFunction(bool on)
 {
     if (on)
     {

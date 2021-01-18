@@ -829,8 +829,8 @@ void FiveAxisStrategy::setFinalAdjustFunction(bool on)
 
 void FiveAxisStrategy::firstCompensationFunction(float *target, bool inverse)
 {
-    float sin_a = sinf(target[A_AXIS] * 1.5F);
-    float cos_a = cosf(target[A_AXIS] * 1.5F);
+    float sin_a = sinf((target[A_AXIS] * 1.5F) / 57.2958);
+    float cos_a = cosf((target[A_AXIS] * 1.5F) / 57.2958);
     float sin_b = sinf(calibration[B]);
     float cos_b = 1 - cosf(calibration[B]);
     float cos_b2 = cosf(calibration[B] / 2);

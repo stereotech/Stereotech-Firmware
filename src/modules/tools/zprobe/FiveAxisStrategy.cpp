@@ -767,7 +767,7 @@ void FiveAxisStrategy::makeHome()
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &gc);
 }
 
-void FiveAxisStrategy::setFirstAdjustFunction(bool on)
+void FiveAxisStrategy::first setFirstAdjustFunction(bool on)
 {
     if (on)
     {
@@ -829,24 +829,36 @@ void FiveAxisStrategy::setFinalAdjustFunction(bool on)
 
 void FiveAxisStrategy::firstCompensationFunction(float *target, bool inverse)
 {
-    float x = target[X_AXIS];
-    float z = target[Z_AXIS];
+    float sin_a = sinf(target[A_AXIS] * 1.5F);
+    float cos_a = cosf(target[A_AXIS] * 1.5F);
+    float sin_b = sinf(calibration[B]);
+    float cos_b = 1 - cosf(calibration[B]);
+    float cos_b2 = cosf(calibration[B] / 2);
+    float sin_b2 = sinf(calibration[B] / 2);
+    float r = lthis->big_part_length + this->small_part_length;
     if (inverse)
     {
+        target[X_AXIS] -= r * sin_b * sin_a + 2 * r * r * cos_b * cos_b2 * cos_a;
+        target[Y_AXIS] -= r * cos_b * sin_a;
+        target[Z_AXIS] += 2 * r * r * cos_b * abs(sin_b2) * cos_a;
         //THEKERNEL->streams("FirstFunction input: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
-        float targetx = helperXi(x, z) + calibration[X0];
-        float targetz = helperDzeta(x, z) + calibration[Z0];
-        target[X_AXIS] = isnan(targetx) ? target[X_AXIS] : targetx;
-        target[Z_AXIS] = isnan(targetz) ? target[Z_AXIS] : targetz;
+        //float targetx = helperXi(x, z) + calibration[X0];
+        //float targetz = helperDzeta(x, z) + calibration[Z0];
+        //target[X_AXIS] = isnan(targetx) ? target[X_AXIS] : targetx;
+        //target[Z_AXIS] = isnan(targetz) ? target[Z_AXIS] : targetz;
         //THEKERNEL->streams("FirstFunction output: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
     }
     else
     {
+
+        target[X_AXIS] += r * sin_b * sin_a + 2 * r * r * cos_b * cos_b2 * cos_a;
+        target[Y_AXIS] += r * cos_b * sin_a;
+        target[Z_AXIS] -= 2 * r * r * cos_b * abs(sin_b2) * cos_a;
         //THEKERNEL->streams("FirstFunction input: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
-        float targetx = helperXi(x, z) + calibration[X0];
-        float targetz = helperDzeta(x, z) + calibration[Z0];
-        target[X_AXIS] = isnan(targetx) ? target[X_AXIS] : targetx;
-        target[Z_AXIS] = isnan(targetz) ? target[Z_AXIS] : targetz;
+        //float targetx = helperXi(x, z) + calibration[X0];
+        //float targetz = helperDzeta(x, z) + calibration[Z0];
+        //target[X_AXIS] = isnan(targetx) ? target[X_AXIS] : targetx;
+        //target[Z_AXIS] = isnan(targetz) ? target[Z_AXIS] : targetz;
         //THEKERNEL->streams("FirstFunction output: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
     }
 }

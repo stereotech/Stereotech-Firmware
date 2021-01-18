@@ -835,7 +835,7 @@ void FiveAxisStrategy::firstCompensationFunction(float *target, bool inverse)
     float cos_b = 1 - cosf(calibration[B]);
     float cos_b2 = cosf(calibration[B] / 2);
     float sin_b2 = sinf(calibration[B] / 2);
-    float r = lthis->big_part_length + this->small_part_length;
+    float r = this->big_part_length + this->small_part_length;
     if (inverse)
     {
         target[X_AXIS] -= r * sin_b * sin_a + 2 * r * r * cos_b * cos_b2 * cos_a;

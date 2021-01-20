@@ -485,7 +485,7 @@ void FiveAxisStrategy::setBAxisCorrection(StreamOutput *stream)
     calibration[X0] = x3 - (calibration[B] / abs(calibration[B])) * cosb_2 * l * cosb_m1;
     calibration[Y0] = position[1];
     calibration[Z0] = z3 - abs(sinb_2) * l * cosb_m1 + (this->big_part_length + this->small_part_length);
-    stream->printf("Real A axis rotation point: x%1.3f y%1.3f z%1.3f\n", calibration[X0], position[Y0], calibration[Z0]);
+    stream->printf("Real A axis rotation point: x%1.3f y%1.3f z%1.3f\n", calibration[X0], calibration[Y0], calibration[Z0]);
     setFirstAdjustFunction(true);
 
     //Move to the fifth point

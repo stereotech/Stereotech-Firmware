@@ -476,14 +476,13 @@ void FiveAxisStrategy::setBAxisCorrection(StreamOutput *stream)
     z4 = std::get<2>(actual_probe_points[3]);
     calibration[B] = asinf((z4 - z3) / ((this->big_part_length + this->small_part_length)));
     stream->printf("B axis angle: b%1.3f\n", calibration[B] * 57.2958);
-    stream->printf("T correction: %1.3f\n", calibration[T]);
     float x3;
     x3 = std::get<0>(actual_probe_points[2]);
     float cosb_2 = cosf(calibration[B] / 2);
     float sinb_2 = sinf(calibration[B] / 2);
     float cosb_m1 = 1 - cosf(calibration[B]);
     float l = 2 * (this->big_part_length + this->small_part_length) * (this->big_part_length + this->small_part_length);
-    calibration[X0] = x3 - (calibration[B] / abs(calibration[B])) * l * cosb_m1;
+    calibration[X0] = x3 - (calibration[B] / abs(calibration[B])) * cosb_2 * l * cosb_m1;
     calibration[Y0] = position[1];
     calibration[Z0] = z3 - abs(sinb_2) * l * cosb_m1 + (this->big_part_length + this->small_part_length);
     stream->printf("Real A axis rotation point: x%1.3f y%1.3f z%1.3f\n", calibration[X0], position[Y0], calibration[Z0]);
@@ -677,12 +676,12 @@ void FiveAxisStrategy::firstCompensationFunction(float *target, bool inverse)
         target[X_AXIS] -= r * sin_b * sin_a + calibration[B] / abs(calibration[B]) * 2 * r * r * cos_b * cos_b2 * cos_a;
         target[Y_AXIS] -= r * cos_b * sin_a;
         target[Z_AXIS] += 2 * r * r * cos_b * abs(sin_b2) * cos_a;
-        else
-        {
-            target[X_AXIS] += r * sin_b * sin_a + calibration[B] / abs(calibration[B]) * 2 * r * r * cos_b * cos_b2 * cos_a;
-            target[Y_AXIS] += r * cos_b * sin_a;
-            target[Z_AXIS] -= 2 * r * r * cos_b * abs(sin_b2) * cos_a;
-        }
+    }
+    else
+    {
+        target[X_AXIS] += r * sin_b * sin_a + calibration[B] / abs(calibration[B]) * 2 * r * r * cos_b * cos_b2 * cos_a;
+        target[Y_AXIS] += r * cos_b * sin_a;
+        target[Z_AXIS] -= 2 * r * r * cos_b * abs(sin_b2) * cos_a;
     }
 }
 

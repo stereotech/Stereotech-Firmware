@@ -474,6 +474,7 @@ void FiveAxisStrategy::setBAxisCorrection(StreamOutput *stream)
     float z3, z4;
     z3 = std::get<2>(actual_probe_points[2]);
     z4 = std::get<2>(actual_probe_points[3]);
+    float y3 = std::get<1>(actual_probe_points[2]);
     calibration[B] = asinf((z4 - z3) / ((this->big_part_length + this->small_part_length)));
     stream->printf("B axis angle: b%1.3f\n", calibration[B] * 57.2958);
     float x3;
@@ -483,7 +484,7 @@ void FiveAxisStrategy::setBAxisCorrection(StreamOutput *stream)
     float cosb_m1 = 1 - cosf(calibration[B]);
     float l = 2 * (this->big_part_length + this->small_part_length) * (this->big_part_length + this->small_part_length);
     calibration[X0] = x3 - (calibration[B] / abs(calibration[B])) * cosb_2 * l * cosb_m1;
-    calibration[Y0] = position[1];
+    calibration[Y0] = y3;
     calibration[Z0] = z3 - abs(sinb_2) * l * cosb_m1 + (this->big_part_length + this->small_part_length);
     stream->printf("Real A axis rotation point: x%1.3f y%1.3f z%1.3f\n", calibration[X0], calibration[Y0], calibration[Z0]);
     setFirstAdjustFunction(true);

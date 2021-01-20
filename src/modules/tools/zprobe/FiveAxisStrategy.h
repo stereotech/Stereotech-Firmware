@@ -32,13 +32,6 @@ private:
   void reset_calibr();
   void print_calibr(StreamOutput *stream);
 
-  float helperL1(float x, float z);
-  float helperP(float x, float z);
-  float helperQ(float x, float z);
-  float helperR(float x, float z);
-  float helperXi(float x, float z);
-  float helperDzeta(float x, float z);
-
   float matrixDeterminant(float a, float b, float c, float d, float e, float f, float g, float h, float i);
 
   std::tuple<float, float, float> probe_points[8];

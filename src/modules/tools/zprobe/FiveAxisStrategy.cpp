@@ -41,16 +41,7 @@
 #define B 0
 #define X0 1
 #define Z0 2
-#define T 3
-//#define EXX 4
-//#define EXY 5
-//#define EXZ 6
-//#define EYX 7
-//#define EYY 8
-//#define EYZ 9
-//#define EZX 10
-//#define EZY 11
-//#define EZZ 12
+#define Y0 3
 #define EXA 4
 #define EYA 5
 #define EZA 6
@@ -151,7 +142,25 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
             }
             return true;
         }
-        if (gcode->m == 370 || gcode->m == 561)
+        else if (gcode->m == 565)
+        {
+            int idx = 0;
+            float value = 0;
+            if (gcode->has_letter('S'))
+                idx = gcode->get_value('S');
+            if (gcode->has_letter('P'))
+                value = gcode->get_value('P');
+            if (idx >= 0 && idx <= 9)
+            {
+                calibration[idx] = value;
+            }
+            else
+            {
+                gcode->stream->printf("only 10 calibration values allowed S0-S9\n");
+            }
+            return true;
+        }
+        else if (gcode->m == 370 || gcode->m == 561)
         {
             setFirstAdjustFunction(false);
             reset_calibr();
@@ -203,6 +212,31 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
                 stepNum = gcode->get_uint('S');
             gotoStep(stepNum, gcode->stream);
             return true;
+        }
+        else if (gcode->m == 1006)
+        {
+            uint8_t functionNum = 0;
+            uint8_t enable = 0;
+            if (gcode->has_letter('S'))
+                functionNum = gcode->get_uint('S');
+            if (gcode->has_letter('P'))
+                enable = gcode->get_uint('P');
+            if (functionNum == 0)
+            {
+                setFirstAdjustFunction(enable > 0);
+            }
+            else if (functionNum == 1)
+            {
+                setSecondAdjustFunction(enable > 0);
+            }
+            else if (functionNum == 2)
+            {
+                setFinalAdjustFunction(enable > 0);
+            }
+            else
+            {
+                gcode->stream->printf(";Wrong function number\n");
+            }
         }
     }
     return false;
@@ -270,11 +304,7 @@ void FiveAxisStrategy::reset_calibr()
 void FiveAxisStrategy::print_calibr(StreamOutput *stream)
 {
     stream->printf("Beta correction: %1.4f\n", calibration[B]);
-    stream->printf("Real A axis rotation point: X - %1.4f, Z - %1.4f\n", calibration[X0], calibration[Z0]);
-    stream->printf("T correction: %1.4f\n", calibration[T]);
-    //stream->printf("X axis correction: %1.4f %1.4f %1.4f\n", calibration[EXX], calibration[EXY], calibration[EXZ]);
-    //stream->printf("Y axis correction: %1.4f %1.4f %1.4f\n", calibration[EYX], calibration[EYY], calibration[EYZ]);
-    //stream->printf("Z axis correction: %1.4f %1.4f %1.4f\n", calibration[EZX], calibration[EZY], calibration[EZZ]);
+    stream->printf("Real A axis rotation point: X - %1.4f, Y - %1.4f, Z - %1.4f\n", calibration[X0], calibration[Y0], calibration[Z0]);
     stream->printf("A axis correction: %1.4f %1.4f %1.4f\n", calibration[EXA], calibration[EYA], calibration[EZA]);
     stream->printf("C axis correction: %1.4f %1.4f %1.4f\n", calibration[XOC], calibration[YOC], calibration[ZOC]);
 }
@@ -355,14 +385,6 @@ void FiveAxisStrategy::gotoStep(uint8_t step, StreamOutput *stream)
     {
         aAxisBeatingCorrection(stream);
     }
-    //else if (step == 11)
-    //{
-    //    preZAxisCorrectionResetting(stream);
-    //}
-    //else if (step == 12)
-    //{
-    //    zAxisCorrectionResetting(stream);
-    //}
 }
 
 void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
@@ -406,8 +428,6 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
 
     zprobe->coordinated_move(NAN, NAN, position[2] + 20, zprobe->getFastFeedrate());
     stream->printf("A axis offset is:%1.3f\n", a_offset);
-    //stream->printf("Big part:%1.3f\n", big_part_length);
-    //stream->printf("Small part:%1.3f\n", small_part_length);
     if (!isnan(a_offset))
     {
         string cmd = string_format("M206 A%1.3f\n", a_offset);
@@ -419,23 +439,6 @@ void FiveAxisStrategy::setAAxisZero(StreamOutput *stream)
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeA);
     Gcode zeroA("G0 A0\n", &(StreamOutput::NullStream));
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &zeroA);
-
-    /*float c_offset = 0;
-    float y1, y2, x1, x2;
-    std::tie(x1, y1, z1) = actual_probe_points[0];
-    std::tie(x2, y2, z2) = actual_probe_points[1];
-    c_offset = -57.2958 * atanf((x2 - x1) / (y2 - y1));
-    //c_offset /= 3.0;
-
-    if (!isnan(c_offset))
-    {
-        string cmdc = string_format("G0 C%1.3f\n", c_offset);
-        Gcode cOffsetGcode(cmdc, &(StreamOutput::NullStream));
-        THEKERNEL->call_event(ON_GCODE_RECEIVED, &cOffsetGcode);
-        stream->printf("C axis offset is:%1.3f\n", c_offset);
-        Gcode homeC("G92 C0\n", &(StreamOutput::NullStream));
-        THEKERNEL->call_event(ON_GCODE_RECEIVED, &homeC);
-    }*/
 
     //Move to the third point
     float x, y, z;
@@ -471,15 +474,19 @@ void FiveAxisStrategy::setBAxisCorrection(StreamOutput *stream)
     float z3, z4;
     z3 = std::get<2>(actual_probe_points[2]);
     z4 = std::get<2>(actual_probe_points[3]);
+    float y3 = std::get<1>(actual_probe_points[2]);
     calibration[B] = asinf((z4 - z3) / ((this->big_part_length + this->small_part_length)));
     stream->printf("B axis angle: b%1.3f\n", calibration[B] * 57.2958);
-    calibration[T] = (sinf(calibration[B]) * sinf(calibration[B])) / (cosf(calibration[B] / 2) * cosf(calibration[B] / 2));
-    stream->printf("T correction: %1.3f\n", calibration[T]);
     float x3;
     x3 = std::get<0>(actual_probe_points[2]);
-    calibration[X0] = x3 - (this->big_part_length + this->small_part_length) * sinf(calibration[B]);
-    calibration[Z0] = z3 + (this->big_part_length + this->small_part_length) * cosf(calibration[B]);
-    stream->printf("Real A axis rotation point: x%1.3f y%1.3f z%1.3f\n", calibration[X0], position[1], calibration[Z0]);
+    float cosb_2 = cosf(calibration[B] / 2);
+    float sinb_2 = sinf(calibration[B] / 2);
+    float cosb_m1 = 1 - cosf(calibration[B]);
+    float l = 2 * (this->big_part_length + this->small_part_length) * (this->big_part_length + this->small_part_length);
+    calibration[X0] = x3 - (calibration[B] / abs(calibration[B])) * cosb_2 * l * cosb_m1;
+    calibration[Y0] = y3;
+    calibration[Z0] = z3 - abs(sinb_2) * l * cosb_m1 + (this->big_part_length + this->small_part_length);
+    stream->printf("Real A axis rotation point: x%1.3f y%1.3f z%1.3f\n", calibration[X0], calibration[Y0], calibration[Z0]);
     setFirstAdjustFunction(true);
 
     //Move to the fifth point
@@ -595,127 +602,11 @@ void FiveAxisStrategy::aAxisBeatingCorrection(StreamOutput *stream)
     THEKERNEL->call_event(ON_GCODE_RECEIVED, &afterHome);
 }
 
-//void FiveAxisStrategy::preZAxisCorrectionResetting(StreamOutput *stream)
-//{
-//    zprobe->coordinated_move(NAN, NAN, this->small_part_length + this->big_part_length, zprobe->getFastFeedrate());
-//
-//    Gcode offset("G0 C360", &(StreamOutput::NullStream));
-//    THEKERNEL->call_event(ON_GCODE_RECEIVED, &offset);
-//
-//    //Move to the ten point
-//    float x, y, z;
-//    std::tie(x, y, z) = probe_points[9];
-//    zprobe->coordinated_move(x, y, z, zprobe->getFastFeedrate());
-//    stream->printf("Moving to probe point 10: x%1.3f y%1.3f z%1.3f\n", x, y, z);
-//}
-//
-//void FiveAxisStrategy::zAxisCorrectionResetting(StreamOutput *stream)
-//{
-//    //Save ten point
-//    float position[3];
-//    THEROBOT->get_axis_position(position);
-//    actual_probe_points[9] = std::make_tuple(position[0], position[1], position[2]);
-//    stream->printf("Probe point 10 at: x%1.3f y%1.3f z%1.3f\n", position[0], position[1], position[2]);
-//
-//    float x9, y9, z9;
-//    float x10, y10, z10;
-//    std::tie(x9, y9, z9) = actual_probe_points[8];
-//    std::tie(x10, y10, z10) = actual_probe_points[9];
-//    calibration[EXZ] = (x10 - x9) / x10;
-//    calibration[EYZ] = (y10 - y9) / y10;
-//    calibration[EZZ] = (z10 - z9) / z10;
-//
-//    print_calibr(stream);
-//}
-
 float FiveAxisStrategy::matrixDeterminant(float a, float b, float c, float d, float e, float f, float g, float h, float i)
 {
     float det = a * e * i + b * f * g + d * h * c - c * e * g - b * d * i - a * h * f;
     //THEKERNEL->streams("Det : %1.3f\n", det);
     return det;
-}
-
-float FiveAxisStrategy::helperL1(float x, float z)
-{
-    float l1 = sqrtf((x - calibration[X0]) * (x - calibration[X0]) + (z - calibration[Z0]) * (z - calibration[Z0]));
-    //THEKERNEL->streams("L1 : %1.3f\n", l1);
-    return l1;
-}
-
-float FiveAxisStrategy::helperP(float x, float z)
-{
-    float p = 4 * ((x - calibration[X0]) * (x - calibration[X0]) + (z - calibration[Z0]) * (z - calibration[Z0]));
-    //THEKERNEL->streams("P : %1.3f\n", p);
-    return p;
-}
-
-float FiveAxisStrategy::helperQ(float x, float z)
-{
-    float q = -4 * (x - calibration[X0]) * ((x - calibration[X0]) * (x - calibration[X0]) + (z - calibration[Z0]) * (z - calibration[Z0]) + helperL1(x, z) * helperL1(x, z) * (1 - calibration[T]));
-    //THEKERNEL->streams("Q : %1.3f\n", q);
-    return q;
-}
-
-float FiveAxisStrategy::helperR(float x, float z)
-{
-    float a = (x - calibration[X0]) * (x - calibration[X0]) + (z - calibration[Z0]) * (z - calibration[Z0]);
-    float b = helperL1(x, z) * helperL1(x, z) * helperL1(x, z) * helperL1(x, z) * (1 - calibration[T]) * (1 - calibration[T]);
-    float c = 2 * helperL1(x, z) * helperL1(x, z) * (1 - calibration[T]) * a - 4 * helperL1(x, z) * helperL1(x, z) * (z - calibration[Z0]) * (z - calibration[Z0]);
-    float r = a * a + b + c;
-    //THEKERNEL->streams("R : %1.3f (a-%1.3f, b-%1.3f, c-%1.3f)\n", r, a, b, c);
-    return r;
-}
-
-float FiveAxisStrategy::helperXi(float x, float z)
-{
-    //float determinant = sqrtf(helperQ(x, z) * helperQ(x, z) - 4 * helperP(x, z) * helperR(x, z));
-    //if (isnan(determinant))
-    //{
-    //    determinant = 0;
-    //}
-    //THEKERNEL->streams->printf("D: %1.8f\n", determinant);
-    float variantA = -helperQ(x, z) / (2 * helperP(x, z));
-    //float variantB = -helperQ(x, z) / (2 * helperP(x, z));
-    if (x == calibration[X0])
-    {
-        //THEKERNEL->streams->printf("Xi : 0\n");
-        return 0;
-    }
-
-    //THEKERNEL->streams("Xi : %1.3f\n", variantA);
-    if (abs(variantA) <= helperL1(x, z))
-    {
-        return variantA;
-    }
-    //else if (abs(variantB) <= helperL1(x, z))
-    //{
-    //    return variantB;
-    //}
-    else
-    {
-        //THEKERNEL->streams->printf("Xi : 0\n");
-        return 0;
-    }
-}
-
-float FiveAxisStrategy::helperDzeta(float x, float z)
-{
-    float dzeta = 0;
-    if (z > calibration[Z0])
-    {
-        dzeta = sqrtf(helperL1(x, z) * helperL1(x, z) - helperXi(x, z) * helperXi(x, z));
-    }
-    else if (z < calibration[Z0])
-    {
-        dzeta = -sqrtf(helperL1(x, z) * helperL1(x, z) - helperXi(x, z) * helperXi(x, z));
-    }
-    else
-    {
-        dzeta = 0;
-    }
-
-    //THEKERNEL->streams("Dzeta : %1.3f\n", dzeta);
-    return dzeta;
 }
 
 void FiveAxisStrategy::makeHome()
@@ -738,21 +629,6 @@ void FiveAxisStrategy::setFirstAdjustFunction(bool on)
         THEROBOT->compensationTransform = nullptr;
     }
 }
-
-//void FiveAxisStrategy::setSecondAdjustFunction(bool on)
-//{
-//    if (on)
-//    {
-//        // set compensation function
-//        using std::placeholders::_1;
-//        using std::placeholders::_2;
-//        THEROBOT->compensationTransform = std::bind(&FiveAxisStrategy::secondCompensationFunction, this, _1, _2);
-//    }
-//    else
-//    {
-//        THEROBOT->compensationTransform = nullptr;
-//    }
-//}
 
 void FiveAxisStrategy::setSecondAdjustFunction(bool on)
 {
@@ -786,52 +662,29 @@ void FiveAxisStrategy::setFinalAdjustFunction(bool on)
 
 void FiveAxisStrategy::firstCompensationFunction(float *target, bool inverse)
 {
-    float x = target[X_AXIS];
-    float z = target[Z_AXIS];
+    float sin_a = sinf((target[A_AXIS] * 1.5F) / 57.2958);
+    float cos_a = cosf((target[A_AXIS] * 1.5F) / 57.2958);
+    float sin_b = sinf(calibration[B]);
+    float cos_b = 1 - cosf(calibration[B]);
+    float cos_b2 = cosf(calibration[B] / 2);
+    float sin_b2 = sinf(calibration[B] / 2);
+    float x = target[X_AXIS] - calibration[X0];
+    float y = target[Y_AXIS] - calibration[Y0];
+    float z = target[Z_AXIS] - calibration[Z0];
+    float r = hypotf(hypotf(x, y), z);
     if (inverse)
     {
-        //THEKERNEL->streams("FirstFunction input: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
-        float targetx = helperXi(x, z) + calibration[X0];
-        float targetz = helperDzeta(x, z) + calibration[Z0];
-        target[X_AXIS] = isnan(targetx) ? target[X_AXIS] : targetx;
-        target[Z_AXIS] = isnan(targetz) ? target[Z_AXIS] : targetz;
-        //THEKERNEL->streams("FirstFunction output: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
+        target[X_AXIS] -= r * sin_b * sin_a + calibration[B] / abs(calibration[B]) * 2 * r * r * cos_b * cos_b2 * cos_a;
+        target[Y_AXIS] -= r * cos_b * sin_a;
+        target[Z_AXIS] += 2 * r * r * cos_b * abs(sin_b2) * cos_a;
     }
     else
     {
-        //THEKERNEL->streams("FirstFunction input: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
-        float targetx = helperXi(x, z) + calibration[X0];
-        float targetz = helperDzeta(x, z) + calibration[Z0];
-        target[X_AXIS] = isnan(targetx) ? target[X_AXIS] : targetx;
-        target[Z_AXIS] = isnan(targetz) ? target[Z_AXIS] : targetz;
-        //THEKERNEL->streams("FirstFunction output: x%1.3f, z%1.3f\n", target[X_AXIS], target[Z_AXIS]);
+        target[X_AXIS] += r * sin_b * sin_a + calibration[B] / abs(calibration[B]) * 2 * r * r * cos_b * cos_b2 * cos_a;
+        target[Y_AXIS] += r * cos_b * sin_a;
+        target[Z_AXIS] -= 2 * r * r * cos_b * abs(sin_b2) * cos_a;
     }
 }
-
-//void FiveAxisStrategy::secondCompensationFunction(float *target, bool inverse)
-//{
-//
-//    firstCompensationFunction(target, inverse);
-//    float x = target[X_AXIS];
-//    float y = target[Y_AXIS];
-//    float z = target[Z_AXIS];
-//    if (inverse)
-//    {
-//       //THEKERNEL->streams("SecondFunction input: x%1.3f, y%1.3f, z%1.3f\n", target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
-//        target[X_AXIS] += calibration[EXX] * x + calibration[EXY] * y + calibration[EXZ] * z;
-//        target[Y_AXIS] += calibration[EYX] * x + calibration[EYY] * y + calibration[EYZ] * z;
-//        target[Z_AXIS] += calibration[EZX] * x + calibration[EZY] * y + calibration[EZZ] * z;
-//       //THEKERNEL->streams("SecondFunction output: x%1.3f, y%1.3f, z%1.3f\n", target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
-//    }
-//    else
-//    {
-//       //THEKERNEL->streams("SecondFunction input: x%1.3f, y%1.3f, z%1.3f\n", target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
-//        target[X_AXIS] -= calibration[EXX] * x + calibration[EXY] * y + calibration[EXZ] * z;
-//        target[Y_AXIS] -= calibration[EYX] * x + calibration[EYY] * y + calibration[EYZ] * z;
-//        target[Z_AXIS] -= calibration[EZX] * x + calibration[EZY] * y + calibration[EZZ] * z;
-//       //THEKERNEL->streams("SecondFunction output: x%1.3f, y%1.3f, z%1.3f\n", target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
-//    }
-//}
 
 void FiveAxisStrategy::secondCompensationFunction(float *target, bool inverse)
 {

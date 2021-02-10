@@ -1,5 +1,5 @@
 # Smoothieware for STE Printers
-CI: [![pipeline status](https://gitlab.com/stereotech/stefirmware/smoothieware/badges/develop/pipeline.svg)](https://gitlab.com/stereotech/stefirmware/smoothieware/commits/develop)
+![CI](https://github.com/stereotech/Stereotech-Firmware/workflows/CI/badge.svg)
 
 ## Main Features
 * 8 Axis support

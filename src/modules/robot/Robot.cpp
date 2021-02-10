@@ -608,7 +608,7 @@ void Robot::on_gcode_received(void *argument)
                                 //X axis of the sync wcs
                                 if (gcode->has_letter('U'))
                                 {
-                                    size_t target_x = gcode->get_int('U');
+                                    size_t target_x = gcode->get_uint('U');
                                     if (target_x == X_AXIS)
                                     {
                                         sx -= to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);

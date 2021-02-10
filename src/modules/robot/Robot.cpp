@@ -608,7 +608,7 @@ void Robot::on_gcode_received(void *argument)
                                 //X axis of the sync wcs
                                 if (gcode->has_letter('U'))
                                 {
-                                    size_t target_x = gcode->get_uint('U');
+                                    size_t target_x = gcode->get_int('U');
                                     if (target_x == X_AXIS)
                                     {
                                         sx -= to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);
@@ -620,6 +620,18 @@ void Robot::on_gcode_received(void *argument)
                                     if (target_x == Z_AXIS)
                                     {
                                         sx -= to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
+                                    }
+                                    if (target_x == 5 - X_AXIS)
+                                    {
+                                        sx += to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);
+                                    }
+                                    if (target_x == 5 - Y_AXIS)
+                                    {
+                                        sx += to_millimeters(gcode->get_value('Y')) - std::get<Y_AXIS>(pos);
+                                    }
+                                    if (target_x == 5 - Z_AXIS)
+                                    {
+                                        sx += to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
                                     }
                                 }
                                 //V axis of the sync wcs
@@ -638,6 +650,18 @@ void Robot::on_gcode_received(void *argument)
                                     {
                                         sy -= to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
                                     }
+                                    if (target_y == 5 - X_AXIS)
+                                    {
+                                        sy += to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);
+                                    }
+                                    if (target_y == 5 - Y_AXIS)
+                                    {
+                                        sy += to_millimeters(gcode->get_value('Y')) - std::get<Y_AXIS>(pos);
+                                    }
+                                    if (target_y == 5 - Z_AXIS)
+                                    {
+                                        sy += to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
+                                    }
                                 }
                                 //W axis of the sync wcs
                                 if (gcode->has_letter('W'))
@@ -654,6 +678,18 @@ void Robot::on_gcode_received(void *argument)
                                     if (target_z == Z_AXIS)
                                     {
                                         sz -= to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
+                                    }
+                                    if (target_z == 5 - X_AXIS)
+                                    {
+                                        sz += to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);
+                                    }
+                                    if (target_z == 5 - Y_AXIS)
+                                    {
+                                        sz += to_millimeters(gcode->get_value('Y')) - std::get<Y_AXIS>(pos);
+                                    }
+                                    if (target_z == 5 - Z_AXIS)
+                                    {
+                                        sz += to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
                                     }
                                 }
                                 wcs_offsets[sync_n] = wcs_t(sx, sy, sz);

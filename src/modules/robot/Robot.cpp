@@ -91,6 +91,7 @@
 #define enable_checksum CHECKSUM("enable")
 #define halt_checksum CHECKSUM("halt")
 #define soft_endstop_checksum CHECKSUM("soft_endstop")
+#define avoid_volume_checksum CHECKSUM("avoid_volume")
 #define xmin_checksum CHECKSUM("x_min")
 #define ymin_checksum CHECKSUM("y_min")
 #define zmin_checksum CHECKSUM("z_min")

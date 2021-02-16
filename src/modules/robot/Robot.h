@@ -92,6 +92,7 @@ public:
         bool save_g54 : 1; // save WCS on M500 if set
         bool is_g123 : 1;
         bool soft_endstop_enabled : 1;
+        bool avoid_volume_enabled : 1;
         bool soft_endstop_halt : 1;
         uint8_t plane_axis_0 : 2; // Current plane ( XY, XZ, YZ )
         uint8_t plane_axis_1 : 2;
@@ -160,7 +161,7 @@ private:
     float max_speeds[3]; // Setting : max allowable speed in mm/s for each axis
     float max_speed;     // Setting : maximum feedrate in mm/s as specified by F parameter
 
-    float soft_endstop_min[3], soft_endstop_max[3];
+    float soft_endstop_min[3], soft_endstop_max[3], avoid_volume_min[3], avoid_volume_max[3];
 
     uint8_t n_motors; //count of the motors/axis registered
 

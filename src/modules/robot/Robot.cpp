@@ -317,6 +317,15 @@ void Robot::load_config()
     soft_endstop_max[X_AXIS] = THEKERNEL->config->value(soft_endstop_checksum, xmax_checksum)->by_default(NAN)->as_number();
     soft_endstop_max[Y_AXIS] = THEKERNEL->config->value(soft_endstop_checksum, ymax_checksum)->by_default(NAN)->as_number();
     soft_endstop_max[Z_AXIS] = THEKERNEL->config->value(soft_endstop_checksum, zmax_checksum)->by_default(NAN)->as_number();
+
+    avoid_volume_enabled = THEKERNEL->config->value(avoid_volume_checksum, enable_checksum)->by_default(false)->as_bool();
+
+    avoid_volume_min[X_AXIS] = THEKERNEL->config->value(avoid_volume_checksum, xmin_checksum)->by_default(NAN)->as_number();
+    avoid_volume_min[Y_AXIS] = THEKERNEL->config->value(avoid_volume_checksum, ymin_checksum)->by_default(NAN)->as_number();
+    avoid_volume_min[Z_AXIS] = THEKERNEL->config->value(avoid_volume_checksum, zmin_checksum)->by_default(NAN)->as_number();
+    avoid_volume_max[X_AXIS] = THEKERNEL->config->value(avoid_volume_checksum, xmax_checksum)->by_default(NAN)->as_number();
+    avoid_volume_max[Y_AXIS] = THEKERNEL->config->value(avoid_volume_checksum, ymax_checksum)->by_default(NAN)->as_number();
+    avoid_volume_max[Z_AXIS] = THEKERNEL->config->value(avoid_volume_checksum, zmax_checksum)->by_default(NAN)->as_number();
 }
 
 uint8_t Robot::register_motor(StepperMotor *motor)
@@ -1122,6 +1131,33 @@ void Robot::on_gcode_received(void *argument)
             }
             break;
 
+        case 212: // M212 Sn turns Avoid volume on/off
+            if (gcode->has_letter('S'))
+            {
+                avoid_volume_enabled = gcode->get_uint('S') == 1;
+            }
+            else
+            {
+                gcode->stream->printf("Avoid volume %s", avoid_volume_enabled ? "Enabled" : "Disabled");
+                for (int i = X_AXIS; i <= Z_AXIS; ++i)
+                {
+                    if (isnan(avoid_volume_min[i]))
+                    {
+                        gcode->stream->printf(",%c min is disabled", 'X' + i);
+                    }
+                    if (isnan(avoid_volume_max[i]))
+                    {
+                        gcode->stream->printf(",%c max is disabled", 'X' + i);
+                    }
+                    if (!is_homed(i))
+                    {
+                        gcode->stream->printf(",%c axis is not homed", 'X' + i);
+                    }
+                }
+                gcode->stream->printf("\n");
+            }
+            break;
+
         case 220: // M220 - speed override percentage
             if (gcode->has_letter('S'))
             {
@@ -1677,18 +1713,40 @@ bool Robot::append_milestone(const float target[], float rate_mm_s)
                 else
                 {
                     // ignore it
-                    if (THEKERNEL->is_grbl_mode())
-                    {
-                        THEKERNEL->streams->printf("error:");
-                    }
-                    else
-                    {
-                        THEKERNEL->streams->printf("Error: ");
-                    }
+                    //if (THEKERNEL->is_grbl_mode())
+                    //{
+                    //    THEKERNEL->streams->printf("error:");
+                    //}
+                    //else
+                    //{
+                    //    THEKERNEL->streams->printf("Error: ");
+                    //}
                     THEKERNEL->streams->printf("Soft Endstop %c was exceeded - entire move ignored\n", i + 'X');
                     return false;
                 }
             }
+        }
+    }
+
+    if (avoid_volume_enabled)
+    {
+        bool homed_and_not_nan = true;
+        bool axis_hit[3];
+        for (int i = 0; i <= Z_AXIS; ++i)
+        {
+            if (!is_homed(i))
+                homed_and_not_nan = false;
+            homed_and_not_nan = !isnan(avoid_volume_min[i]);
+            homed_and_not_nan = !isnan(avoid_volume_max[i]);
+            if (homed_and_not_nan)
+            {
+                axis_hit[i] = transformed_target[i] >= avoid_volume_min[i] && transformed_target[i] <= avoid_volume_min[i];
+            }
+        }
+        if (homed_and_not_nan && axis_hit[X_AXIS] && axis_hit[Y_AXIS] && axis_hit[Z_AXIS])
+        {
+            THEKERNEL->streams->printf("Avoid volume hit by %c axis - entire move ignored\n", i + 'X');
+            return false;
         }
     }
 

@@ -1745,7 +1745,7 @@ bool Robot::append_milestone(const float target[], float rate_mm_s)
         }
         if (homed_and_not_nan && axis_hit[X_AXIS] && axis_hit[Y_AXIS] && axis_hit[Z_AXIS])
         {
-            THEKERNEL->streams->printf("Avoid volume hit by %c axis - entire move ignored\n", i + 'X');
+            THEKERNEL->streams->printf("Avoid volume hit by - entire move ignored\n");
             return false;
         }
     }

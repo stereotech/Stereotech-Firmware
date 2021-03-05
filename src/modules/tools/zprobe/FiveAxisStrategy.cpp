@@ -191,7 +191,7 @@ bool FiveAxisStrategy::handleGcode(Gcode *gcode)
             {
                 float x, y, z;
                 std::tie(x, y, z) = probe_points[i];
-                gcode->stream->printf("Probe point %d: %1.3f,%1.3f,%1.3f", i, x, y, z);
+                gcode->stream->printf("Probe point %d: %1.3f,%1.3f,%1.3f\n", i, x, y, z);
             }
             gcode->stream->printf(";Load saved calibration\nM375\n");
             return true;

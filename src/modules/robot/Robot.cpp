@@ -692,6 +692,19 @@ void Robot::on_gcode_received(void *argument)
                                         sz += to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
                                     }
                                 }
+                                //offsets must be positive
+                                if (sx < 0)
+                                {
+                                    sx = 0;
+                                }
+                                if (sy < 0)
+                                {
+                                    sy = 0;
+                                }
+                                if (sz < 0)
+                                {
+                                    sz = 0;
+                                }
                                 wcs_offsets[sync_n] = wcs_t(sx, sy, sz);
                             }
                         }

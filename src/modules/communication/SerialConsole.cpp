@@ -67,7 +67,7 @@ void SerialConsole::on_serial_char_received()
     }
 }
 
-void SerialConsole::void * argument)
+void SerialConsole::on_idle(void *argument)
 {
     if (query_flag)
     {

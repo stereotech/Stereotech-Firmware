@@ -107,6 +107,7 @@ void TemperatureControl::on_module_loaded()
         this->register_for_event(ON_MAIN_LOOP);
         this->register_for_event(ON_SET_PUBLIC_DATA);
         this->register_for_event(ON_HALT);
+        this->register_for_event(ON_CANCEL);
     }
 }
 
@@ -124,6 +125,12 @@ void TemperatureControl::on_halt(void *arg)
 void TemperatureControl::on_idle(void *arg)
 {
     sensor->on_idle();
+}
+
+void TemperatureControl::on_cancel(void *arg)
+{
+    this->target_temperature = UNDEFINED;
+    this->heater_pin.set((this->o = 0));
 }
 
 void TemperatureControl::on_main_loop(void *argument)
@@ -303,7 +310,8 @@ void TemperatureControl::on_gcode_received(void *argument)
             }
             else if (!gcode->has_letter('S'))
             {
-                gcode->stream->printf("%s(S%d): using %s\n", this->designator.c_str(), this->pool_index, this->readonly ? "Readonly" : this->use_bangbang ? "Bangbang" : "PID");
+                gcode->stream->printf("%s(S%d): using %s\n", this->designator.c_str(), this->pool_index, this->readonly ? "Readonly" : this->use_bangbang ? "Bangbang"
+                                                                                                                                                          : "PID");
                 sensor->get_raw();
                 TempSensor::sensor_options_t options;
                 if (sensor->get_optional(options))

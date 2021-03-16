@@ -51,6 +51,7 @@ public:
     virtual void on_get_public_data(void *){};
     virtual void on_set_public_data(void *){};
     virtual void on_halt(void *){};
+    virtual void on_cancel(void *){};
     virtual void on_enable(void *){};
 };
 

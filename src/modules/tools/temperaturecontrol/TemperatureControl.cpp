@@ -107,6 +107,7 @@ void TemperatureControl::on_module_loaded()
         this->register_for_event(ON_MAIN_LOOP);
         this->register_for_event(ON_SET_PUBLIC_DATA);
         this->register_for_event(ON_HALT);
+        this->register_for_event(ON_CANCEL);
     }
 }
 
@@ -124,6 +125,12 @@ void TemperatureControl::on_halt(void *arg)
 void TemperatureControl::on_idle(void *arg)
 {
     sensor->on_idle();
+}
+
+void TemperatureControl::on_cancel(void *arg)
+{
+    this->target_temperature = UNDEFINED;
+    this->heater_pin.set((this->o = 0));
 }
 
 void TemperatureControl::on_main_loop(void *argument)
@@ -442,13 +449,6 @@ void TemperatureControl::on_gcode_received(void *argument)
                             if (THEKERNEL->is_halted() || this->target_temperature == UNDEFINED)
                             {
                                 THEKERNEL->streams->printf("Wait on temperature aborted by kill\n");
-                                break;
-                            }
-                            if (THEKERNEL->is_canceled())
-                            {
-                                THEKERNEL->call_event(ON_CANCEL, false);
-                                this->target_temperature = UNDEFINED;
-                                this->heater_pin.set((this->o = 0));
                                 break;
                             }
                         }

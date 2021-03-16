@@ -20,17 +20,19 @@ using std::string;
 // Serial reading module
 // Treats every received line as a command and passes it ( via event call ) to the command dispatcher.
 // The command dispatcher will then ask other modules if they can do something with it
-SerialConsole::SerialConsole( PinName rx_pin, PinName tx_pin, int baud_rate ){
-    this->serial = new mbed::Serial( rx_pin, tx_pin );
+SerialConsole::SerialConsole(PinName rx_pin, PinName tx_pin, int baud_rate)
+{
+    this->serial = new mbed::Serial(rx_pin, tx_pin);
     this->serial->baud(baud_rate);
 }
 
 // Called when the module has just been loaded
-void SerialConsole::on_module_loaded() {
+void SerialConsole::on_module_loaded()
+{
     // We want to be called every time a new char is received
     this->serial->attach(this, &SerialConsole::on_serial_char_received, mbed::Serial::RxIrq);
-    query_flag= false;
-    halt_flag= false;
+    query_flag = false;
+    halt_flag = false;
 
     // We only call the command dispatcher in the main loop, nowhere else
     this->register_for_event(ON_MAIN_LOOP);
@@ -41,67 +43,85 @@ void SerialConsole::on_module_loaded() {
 }
 
 // Called on Serial::RxIrq interrupt, meaning we have received a char
-void SerialConsole::on_serial_char_received(){
-    while(this->serial->readable()){
+void SerialConsole::on_serial_char_received()
+{
+    while (this->serial->readable())
+    {
         char received = this->serial->getc();
-        if(received == '?') {
-            query_flag= true;
+        if (received == '?')
+        {
+            query_flag = true;
             continue;
         }
-        if(received == 'X'-'A'+1) { // ^X
-            halt_flag= true;
+        if (received == 'X' - 'A' + 1)
+        { // ^X
+            halt_flag = true;
             continue;
         }
         // convert CR to NL (for host OSs that don't send NL)
-        if( received == '\r' ){ received = '\n'; }
+        if (received == '\r')
+        {
+            received = '\n';
+        }
         this->buffer.push_back(received);
     }
 }
 
-void SerialConsole::on_idle(void * argument)
+void SerialConsole::void * argument)
 {
-    if(query_flag) {
-        query_flag= false;
+    if (query_flag)
+    {
+        query_flag = false;
         puts(THEKERNEL->get_query_string().c_str());
     }
-    if(halt_flag) {
-        halt_flag= false;
+    if (halt_flag)
+    {
+        halt_flag = false;
         THEKERNEL->call_event(ON_HALT, nullptr);
-        if(THEKERNEL->is_grbl_mode()) {
+        if (THEKERNEL->is_grbl_mode())
+        {
             puts("ALARM: Abort during cycle\r\n");
-        } else {
+        }
+        else
+        {
             puts("HALTED, M999 or $X to exit HALT state\r\n");
         }
     }
 }
 
 // Actual event calling must happen in the main loop because if it happens in the interrupt we will loose data
-void SerialConsole::on_main_loop(void * argument){
-    if( this->has_char('\n') ){
+void SerialConsole::on_main_loop(void *argument)
+{
+    if (this->has_char('\n'))
+    {
         string received;
         received.reserve(20);
-        while(1){
-           char c;
-           this->buffer.pop_front(c);
-           if( c == '\n' ){
+        while (1)
+        {
+            char c;
+            this->buffer.pop_front(c);
+            if (c == '\n')
+            {
                 struct SerialMessage message;
                 message.message = received;
                 message.stream = this;
-                THEKERNEL->call_event(ON_CONSOLE_LINE_RECEIVED, &message );
+                THEKERNEL->call_event(ON_CONSOLE_LINE_RECEIVED, &message);
                 return;
-            }else{
+            }
+            else
+            {
                 received += c;
             }
         }
     }
 }
 
-
-int SerialConsole::puts(const char* s)
+int SerialConsole::puts(const char *s)
 {
     //return fwrite(s, strlen(s), 1, (FILE*)(*this->serial));
-    size_t n= strlen(s);
-    for (size_t i = 0; i < n; ++i) {
+    size_t n = strlen(s);
+    for (size_t i = 0; i < n; ++i)
+    {
         _putc(s[i]);
     }
     return n;
@@ -118,10 +138,13 @@ int SerialConsole::_getc()
 }
 
 // Does the queue have a given char ?
-bool SerialConsole::has_char(char letter){
+bool SerialConsole::has_char(char letter)
+{
     int index = this->buffer.tail;
-    while( index != this->buffer.head ){
-        if( this->buffer.buffer[index] == letter ){
+    while (index != this->buffer.head)
+    {
+        if (this->buffer.buffer[index] == letter)
+        {
             return true;
         }
         index = this->buffer.next_block_index(index);

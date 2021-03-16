@@ -239,7 +239,7 @@ bool USBSerial::USBEvent_EPOut(uint8_t bEP, uint8_t bEPStatus)
             continue;
         }
 
-        if (c[i] = '!')
+        if (c[i] == '!')
         {
             soft_stop_flag = true;
             continue;

@@ -446,6 +446,7 @@ void TemperatureControl::on_gcode_received(void *argument)
                             }
                             if (THEKERNEL->is_canceled())
                             {
+                                THEKERNEL->call_event(ON_CANCEL, false);
                                 this->target_temperature = UNDEFINED;
                                 this->heater_pin.set((this->o = 0));
                                 break;

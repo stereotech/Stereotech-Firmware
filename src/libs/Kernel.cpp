@@ -377,7 +377,7 @@ void Kernel::call_event(_EVENT_ENUM id_event, void *argument)
 
     if (id_event == ON_CANCEL)
     {
-        this->canceled = (argument == nullptr);
+        this->canceled = (argument == true);
     }
 
     // send to all registered modules
@@ -395,11 +395,6 @@ void Kernel::call_event(_EVENT_ENUM id_event, void *argument)
             // fix up the current positions in case they got out of sync due to backed up commands
             this->robot->reset_position_from_current_actuator_position();
         }
-    }
-
-    if (id_event == ON_CANCEL)
-    {
-        this->canceled = false;
     }
 }
 

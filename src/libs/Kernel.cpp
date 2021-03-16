@@ -42,16 +42,16 @@
 
 #define laser_checksum CHECKSUM("laser")
 #define baud_rate_setting_checksum CHECKSUM("baud_rate")
-#define uart0_checksum             CHECKSUM("uart0")
+#define uart0_checksum CHECKSUM("uart0")
 
-#define base_stepping_frequency_checksum            CHECKSUM("base_stepping_frequency")
-#define microseconds_per_step_pulse_checksum        CHECKSUM("microseconds_per_step_pulse")
-#define disable_leds_checksum                       CHECKSUM("leds_disable")
-#define grbl_mode_checksum                          CHECKSUM("grbl_mode")
-#define feed_hold_enable_checksum                   CHECKSUM("enable_feed_hold")
-#define ok_per_line_checksum                        CHECKSUM("ok_per_line")
+#define base_stepping_frequency_checksum CHECKSUM("base_stepping_frequency")
+#define microseconds_per_step_pulse_checksum CHECKSUM("microseconds_per_step_pulse")
+#define disable_leds_checksum CHECKSUM("leds_disable")
+#define grbl_mode_checksum CHECKSUM("grbl_mode")
+#define feed_hold_enable_checksum CHECKSUM("enable_feed_hold")
+#define ok_per_line_checksum CHECKSUM("ok_per_line")
 
-Kernel* Kernel::instance;
+Kernel *Kernel::instance;
 
 // The kernel is the central point in Smoothie : it stores modules, and handles event calls
 Kernel::Kernel()
@@ -59,7 +59,7 @@ Kernel::Kernel()
     halted = false;
     feed_hold = false;
     enable_feed_hold = false;
-    bad_mcu= true;
+    bad_mcu = true;
 
     instance = this; // setup the Singleton instance of the kernel
 
@@ -79,51 +79,53 @@ Kernel::Kernel()
 
     this->streams = new StreamOutputPool();
 
-    this->current_path   = "/";
+    this->current_path = "/";
 
     // Configure UART depending on MRI config
     // Match up the SerialConsole to MRI UART. This makes it easy to use only one UART for both debug and actual commands.
     NVIC_SetPriorityGrouping(0);
 
 #if MRI_ENABLE != 0
-    switch( __mriPlatform_CommUartIndex() ) {
-        case 0:
-            this->serial = new(AHB0) SerialConsole(USBTX, USBRX, this->config->value(uart0_checksum, baud_rate_setting_checksum)->by_default(DEFAULT_SERIAL_BAUD_RATE)->as_number());
-            break;
-        case 1:
-            this->serial = new(AHB0) SerialConsole(  p13,   p14, this->config->value(uart0_checksum, baud_rate_setting_checksum)->by_default(DEFAULT_SERIAL_BAUD_RATE)->as_number());
-            break;
-        case 2:
-            this->serial = new(AHB0) SerialConsole(  p28,   p27, this->config->value(uart0_checksum, baud_rate_setting_checksum)->by_default(DEFAULT_SERIAL_BAUD_RATE)->as_number());
-            break;
-        case 3:
-            this->serial = new(AHB0) SerialConsole(   p9,   p10, this->config->value(uart0_checksum, baud_rate_setting_checksum)->by_default(DEFAULT_SERIAL_BAUD_RATE)->as_number());
-            break;
+    switch (__mriPlatform_CommUartIndex())
+    {
+    case 0:
+        this->serial = new (AHB0) SerialConsole(USBTX, USBRX, this->config->value(uart0_checksum, baud_rate_setting_checksum)->by_default(DEFAULT_SERIAL_BAUD_RATE)->as_number());
+        break;
+    case 1:
+        this->serial = new (AHB0) SerialConsole(p13, p14, this->config->value(uart0_checksum, baud_rate_setting_checksum)->by_default(DEFAULT_SERIAL_BAUD_RATE)->as_number());
+        break;
+    case 2:
+        this->serial = new (AHB0) SerialConsole(p28, p27, this->config->value(uart0_checksum, baud_rate_setting_checksum)->by_default(DEFAULT_SERIAL_BAUD_RATE)->as_number());
+        break;
+    case 3:
+        this->serial = new (AHB0) SerialConsole(p9, p10, this->config->value(uart0_checksum, baud_rate_setting_checksum)->by_default(DEFAULT_SERIAL_BAUD_RATE)->as_number());
+        break;
     }
 #endif
     // default
-    if(this->serial == NULL) {
-        this->serial = new(AHB0) SerialConsole(USBTX, USBRX, this->config->value(uart0_checksum, baud_rate_setting_checksum)->by_default(DEFAULT_SERIAL_BAUD_RATE)->as_number());
+    if (this->serial == NULL)
+    {
+        this->serial = new (AHB0) SerialConsole(USBTX, USBRX, this->config->value(uart0_checksum, baud_rate_setting_checksum)->by_default(DEFAULT_SERIAL_BAUD_RATE)->as_number());
     }
 
     //some boards don't have leds.. TOO BAD!
-    this->use_leds = !this->config->value( disable_leds_checksum )->by_default(false)->as_bool();
+    this->use_leds = !this->config->value(disable_leds_checksum)->by_default(false)->as_bool();
 
 #ifdef CNC
-    this->grbl_mode = this->config->value( grbl_mode_checksum )->by_default(true)->as_bool();
+    this->grbl_mode = this->config->value(grbl_mode_checksum)->by_default(true)->as_bool();
 #else
-    this->grbl_mode = this->config->value( grbl_mode_checksum )->by_default(false)->as_bool();
+    this->grbl_mode = this->config->value(grbl_mode_checksum)->by_default(false)->as_bool();
 #endif
 
-    this->enable_feed_hold = this->config->value( feed_hold_enable_checksum )->by_default(this->grbl_mode)->as_bool();
+    this->enable_feed_hold = this->config->value(feed_hold_enable_checksum)->by_default(this->grbl_mode)->as_bool();
 
     // we expect ok per line now not per G code, setting this to false will return to the old (incorrect) way of ok per G code
-    this->ok_per_line = this->config->value( ok_per_line_checksum )->by_default(true)->as_bool();
+    this->ok_per_line = this->config->value(ok_per_line_checksum)->by_default(true)->as_bool();
 
-    this->add_module( this->serial );
+    this->add_module(this->serial);
 
     // HAL stuff
-    add_module( this->slow_ticker = new SlowTicker());
+    add_module(this->slow_ticker = new SlowTicker());
 
     this->step_ticker = new StepTicker();
     this->adc = new Adc();
@@ -142,12 +144,27 @@ Kernel::Kernel()
     NVIC_SetPriority(USB_IRQn, 5);
 
     // If MRI is enabled
-    if( MRI_ENABLE ) {
-        if( NVIC_GetPriority(UART0_IRQn) > 0 ) { NVIC_SetPriority(UART0_IRQn, 5); }
-        if( NVIC_GetPriority(UART1_IRQn) > 0 ) { NVIC_SetPriority(UART1_IRQn, 5); }
-        if( NVIC_GetPriority(UART2_IRQn) > 0 ) { NVIC_SetPriority(UART2_IRQn, 5); }
-        if( NVIC_GetPriority(UART3_IRQn) > 0 ) { NVIC_SetPriority(UART3_IRQn, 5); }
-    } else {
+    if (MRI_ENABLE)
+    {
+        if (NVIC_GetPriority(UART0_IRQn) > 0)
+        {
+            NVIC_SetPriority(UART0_IRQn, 5);
+        }
+        if (NVIC_GetPriority(UART1_IRQn) > 0)
+        {
+            NVIC_SetPriority(UART1_IRQn, 5);
+        }
+        if (NVIC_GetPriority(UART2_IRQn) > 0)
+        {
+            NVIC_SetPriority(UART2_IRQn, 5);
+        }
+        if (NVIC_GetPriority(UART3_IRQn) > 0)
+        {
+            NVIC_SetPriority(UART3_IRQn, 5);
+        }
+    }
+    else
+    {
         NVIC_SetPriority(UART0_IRQn, 5);
         NVIC_SetPriority(UART1_IRQn, 5);
         NVIC_SetPriority(UART2_IRQn, 5);
@@ -159,14 +176,14 @@ Kernel::Kernel()
     float microseconds_per_step_pulse = this->config->value(microseconds_per_step_pulse_checksum)->by_default(1)->as_number();
 
     // Configure the step ticker
-    this->step_ticker->set_frequency( this->base_stepping_frequency );
-    this->step_ticker->set_unstep_time( microseconds_per_step_pulse );
+    this->step_ticker->set_frequency(this->base_stepping_frequency);
+    this->step_ticker->set_unstep_time(microseconds_per_step_pulse);
 
     // Core modules
-    this->add_module( this->conveyor       = new Conveyor()      );
-    this->add_module( this->gcode_dispatch = new GcodeDispatch() );
-    this->add_module( this->robot          = new Robot()         );
-    this->add_module( this->simpleshell    = new SimpleShell()   );
+    this->add_module(this->conveyor = new Conveyor());
+    this->add_module(this->gcode_dispatch = new GcodeDispatch());
+    this->add_module(this->robot = new Robot());
+    this->add_module(this->simpleshell = new SimpleShell());
 
     this->planner = new Planner();
     this->configurator = new Configurator();
@@ -178,43 +195,58 @@ std::string Kernel::get_query_string()
     std::string str;
     bool homing;
     bool ok = PublicData::get_value(endstops_checksum, get_homing_status_checksum, 0, &homing);
-    if(!ok) homing = false;
+    if (!ok)
+        homing = false;
     bool running = false;
 
     str.append("<");
-    if(halted) {
+    if (halted)
+    {
         str.append("Alarm");
-    } else if(homing) {
+    }
+    else if (homing)
+    {
         running = true;
         str.append("Home");
-    } else if(feed_hold) {
+    }
+    else if (feed_hold)
+    {
         str.append("Hold");
-    } else if(this->conveyor->is_idle()) {
+    }
+    else if (this->conveyor->is_idle())
+    {
         str.append("Idle");
-    } else {
+    }
+    else
+    {
         running = true;
         str.append("Run");
     }
 
-    if(running) {
+    if (running)
+    {
         float mpos[3];
         robot->get_current_machine_position(mpos);
         // current_position/mpos includes the compensation transform so we need to get the inverse to get actual position
-        if(robot->compensationTransform) robot->compensationTransform(mpos, true); // get inverse compensation transform
+        if (robot->compensationTransform)
+            robot->compensationTransform(mpos, true); // get inverse compensation transform
 
         char buf[128];
         // machine position
         size_t n = snprintf(buf, sizeof(buf), "%1.4f,%1.4f,%1.4f", robot->from_millimeters(mpos[0]), robot->from_millimeters(mpos[1]), robot->from_millimeters(mpos[2]));
-        if(n > sizeof(buf)) n= sizeof(buf);
+        if (n > sizeof(buf))
+            n = sizeof(buf);
 
         str.append("|MPos:").append(buf, n);
 
 #if MAX_ROBOT_ACTUATORS > 3
         // deal with the ABC axis (E will be A)
-        for (int i = A_AXIS; i < robot->get_number_registered_motors(); ++i) {
+        for (int i = A_AXIS; i < robot->get_number_registered_motors(); ++i)
+        {
             // current actuator position
             n = snprintf(buf, sizeof(buf), ",%1.4f", robot->actuators[i]->get_current_position());
-            if(n > sizeof(buf)) n= sizeof(buf);
+            if (n > sizeof(buf))
+                n = sizeof(buf);
             str.append(buf, n);
         }
 #endif
@@ -222,50 +254,58 @@ std::string Kernel::get_query_string()
         // work space position
         Robot::wcs_t pos = robot->mcs2wcs(mpos);
         n = snprintf(buf, sizeof(buf), "%1.4f,%1.4f,%1.4f", robot->from_millimeters(std::get<X_AXIS>(pos)), robot->from_millimeters(std::get<Y_AXIS>(pos)), robot->from_millimeters(std::get<Z_AXIS>(pos)));
-        if(n > sizeof(buf)) n= sizeof(buf);
+        if (n > sizeof(buf))
+            n = sizeof(buf);
 
         str.append("|WPos:").append(buf, n);
 
         // current feedrate and requested fr and override
-        float fr= robot->from_millimeters(conveyor->get_current_feedrate()*60.0F);
-        float frr= robot->from_millimeters(robot->get_feed_rate());
-        float fro= 6000.0F / robot->get_seconds_per_minute();
-        n = snprintf(buf, sizeof(buf), "|F:%1.1f,%1.1f,%1.1f", fr, frr,fro);
-        if(n > sizeof(buf)) n= sizeof(buf);
+        float fr = robot->from_millimeters(conveyor->get_current_feedrate() * 60.0F);
+        float frr = robot->from_millimeters(robot->get_feed_rate());
+        float fro = 6000.0F / robot->get_seconds_per_minute();
+        n = snprintf(buf, sizeof(buf), "|F:%1.1f,%1.1f,%1.1f", fr, frr, fro);
+        if (n > sizeof(buf))
+            n = sizeof(buf);
         str.append(buf, n);
 
-
-        // current Laser power
-        #ifndef NO_TOOLS_LASER
-            Laser *plaser= nullptr;
-            if(PublicData::get_value(laser_checksum, (void *)&plaser) && plaser != nullptr) {
-                float lp= plaser->get_current_power();
-                n = snprintf(buf, sizeof(buf), "|L:%1.4f", lp);
-                if(n > sizeof(buf)) n= sizeof(buf);
-                str.append(buf, n);
-                float sr= robot->get_s_value();
-                n = snprintf(buf, sizeof(buf), "|S:%1.4f", sr);
-                if(n > sizeof(buf)) n= sizeof(buf);
-                str.append(buf, n);
-            }
-        #endif
-
-    } else {
+// current Laser power
+#ifndef NO_TOOLS_LASER
+        Laser *plaser = nullptr;
+        if (PublicData::get_value(laser_checksum, (void *)&plaser) && plaser != nullptr)
+        {
+            float lp = plaser->get_current_power();
+            n = snprintf(buf, sizeof(buf), "|L:%1.4f", lp);
+            if (n > sizeof(buf))
+                n = sizeof(buf);
+            str.append(buf, n);
+            float sr = robot->get_s_value();
+            n = snprintf(buf, sizeof(buf), "|S:%1.4f", sr);
+            if (n > sizeof(buf))
+                n = sizeof(buf);
+            str.append(buf, n);
+        }
+#endif
+    }
+    else
+    {
         // return the last milestone if idle
         char buf[128];
         // machine position
         Robot::wcs_t mpos = robot->get_axis_position();
         size_t n = snprintf(buf, sizeof(buf), "%1.4f,%1.4f,%1.4f", robot->from_millimeters(std::get<X_AXIS>(mpos)), robot->from_millimeters(std::get<Y_AXIS>(mpos)), robot->from_millimeters(std::get<Z_AXIS>(mpos)));
-        if(n > sizeof(buf)) n= sizeof(buf);
+        if (n > sizeof(buf))
+            n = sizeof(buf);
 
         str.append("|MPos:").append(buf, n);
 
 #if MAX_ROBOT_ACTUATORS > 3
         // deal with the ABC axis (E will be A)
-        for (int i = A_AXIS; i < robot->get_number_registered_motors(); ++i) {
+        for (int i = A_AXIS; i < robot->get_number_registered_motors(); ++i)
+        {
             // current actuator position
             n = snprintf(buf, sizeof(buf), ",%1.4f", robot->actuators[i]->get_current_position());
-            if(n > sizeof(buf)) n= sizeof(buf);
+            if (n > sizeof(buf))
+                n = sizeof(buf);
             str.append(buf, n);
         }
 #endif
@@ -273,28 +313,34 @@ std::string Kernel::get_query_string()
         // work space position
         Robot::wcs_t pos = robot->mcs2wcs(mpos);
         n = snprintf(buf, sizeof(buf), "%1.4f,%1.4f,%1.4f", robot->from_millimeters(std::get<X_AXIS>(pos)), robot->from_millimeters(std::get<Y_AXIS>(pos)), robot->from_millimeters(std::get<Z_AXIS>(pos)));
-        if(n > sizeof(buf)) n= sizeof(buf);
+        if (n > sizeof(buf))
+            n = sizeof(buf);
         str.append("|WPos:").append(buf, n);
 
         // requested framerate, and override
-        float fr= robot->from_millimeters(robot->get_feed_rate());
-        float fro= 6000.0F / robot->get_seconds_per_minute();
+        float fr = robot->from_millimeters(robot->get_feed_rate());
+        float fro = 6000.0F / robot->get_seconds_per_minute();
         n = snprintf(buf, sizeof(buf), "|F:%1.1f,%1.1f", fr, fro);
-        if(n > sizeof(buf)) n= sizeof(buf);
+        if (n > sizeof(buf))
+            n = sizeof(buf);
         str.append(buf, n);
     }
 
     // if not grbl mode get temperatures
-    if(!is_grbl_mode()) {
+    if (!is_grbl_mode())
+    {
         struct pad_temperature temp;
         // scan all temperature controls
         std::vector<struct pad_temperature> controllers;
         bool ok = PublicData::get_value(temperature_control_checksum, poll_controls_checksum, &controllers);
-        if (ok) {
+        if (ok)
+        {
             char buf[32];
-            for (auto &c : controllers) {
-                size_t n= snprintf(buf, sizeof(buf), "|%s:%1.1f,%1.1f", c.designator.c_str(), c.current_temperature, c.target_temperature);
-                if(n > sizeof(buf)) n= sizeof(buf);
+            for (auto &c : controllers)
+            {
+                size_t n = snprintf(buf, sizeof(buf), "|%s:%1.1f,%1.1f", c.designator.c_str(), c.current_temperature, c.target_temperature);
+                if (n > sizeof(buf))
+                    n = sizeof(buf);
                 str.append(buf, n);
             }
         }
@@ -305,7 +351,7 @@ std::string Kernel::get_query_string()
 }
 
 // Add a module to Kernel. We don't actually hold a list of modules we just call its on_module_loaded
-void Kernel::add_module(Module* module)
+void Kernel::add_module(Module *module)
 {
     module->on_module_loaded();
 }
@@ -317,46 +363,64 @@ void Kernel::register_for_event(_EVENT_ENUM id_event, Module *mod)
 }
 
 // Call a specific event with an argument
-void Kernel::call_event(_EVENT_ENUM id_event, void * argument)
+void Kernel::call_event(_EVENT_ENUM id_event, void *argument)
 {
     bool was_idle = true;
-    if(id_event == ON_HALT) {
+    if (id_event == ON_HALT)
+    {
         this->halted = (argument == nullptr);
-        if(!this->halted && this->feed_hold) this->feed_hold= false; // also clear feed hold
+        if (!this->halted && this->feed_hold)
+            this->feed_hold = false;    // also clear feed hold
         was_idle = conveyor->is_idle(); // see if we were doing anything like printing
     }
 
+    if (id_event == ON_CANCEL)
+    {
+        this->canceled = (argument == nullptr);
+    }
+
     // send to all registered modules
-    for (auto m : hooks[id_event]) {
+    for (auto m : hooks[id_event])
+    {
         (m->*kernel_callback_functions[id_event])(argument);
     }
 
-    if(id_event == ON_HALT) {
-        if(!this->halted || !was_idle) {
+    if (id_event == ON_HALT)
+    {
+        if (!this->halted || !was_idle)
+        {
             // if we were running and this is a HALT
             // or if we are clearing the halt with $X or M999
             // fix up the current positions in case they got out of sync due to backed up commands
             this->robot->reset_position_from_current_actuator_position();
         }
     }
+
+    if (id_event == ON_CANCEL)
+    {
+        this->canceled = false;
+    }
 }
 
 // These are used by tests to test for various things. basically mocks
 bool Kernel::kernel_has_event(_EVENT_ENUM id_event, Module *mod)
 {
-    for (auto m : hooks[id_event]) {
-        if(m == mod) return true;
+    for (auto m : hooks[id_event])
+    {
+        if (m == mod)
+            return true;
     }
     return false;
 }
 
 void Kernel::unregister_for_event(_EVENT_ENUM id_event, Module *mod)
 {
-    for (auto i = hooks[id_event].begin(); i != hooks[id_event].end(); ++i) {
-        if(*i == mod) {
+    for (auto i = hooks[id_event].begin(); i != hooks[id_event].end(); ++i)
+    {
+        if (*i == mod)
+        {
             hooks[id_event].erase(i);
             return;
         }
     }
 }
-

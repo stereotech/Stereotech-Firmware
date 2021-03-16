@@ -303,7 +303,8 @@ void TemperatureControl::on_gcode_received(void *argument)
             }
             else if (!gcode->has_letter('S'))
             {
-                gcode->stream->printf("%s(S%d): using %s\n", this->designator.c_str(), this->pool_index, this->readonly ? "Readonly" : this->use_bangbang ? "Bangbang" : "PID");
+                gcode->stream->printf("%s(S%d): using %s\n", this->designator.c_str(), this->pool_index, this->readonly ? "Readonly" : this->use_bangbang ? "Bangbang"
+                                                                                                                                                          : "PID");
                 sensor->get_raw();
                 TempSensor::sensor_options_t options;
                 if (sensor->get_optional(options))
@@ -441,6 +442,12 @@ void TemperatureControl::on_gcode_received(void *argument)
                             if (THEKERNEL->is_halted() || this->target_temperature == UNDEFINED)
                             {
                                 THEKERNEL->streams->printf("Wait on temperature aborted by kill\n");
+                                break;
+                            }
+                            if (THEKERNEL->is_canceled())
+                            {
+                                this->target_temperature = UNDEFINED;
+                                this->heater_pin.set((this->o = 0));
                                 break;
                             }
                         }

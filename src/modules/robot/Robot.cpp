@@ -1452,6 +1452,9 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         compensated_target[Y_AXIS] = target_y;
         compensated_target[Z_AXIS] = target_z;
 
+        reset_axis_position(((this->machine_position[Y_AXIS] - center_y) * cos_a - (this->machine_position[Z_AXIS] - center_z) * sin_a) + center_y, Y_AXIS);
+        reset_axis_position(((this->machine_position[Y_AXIS] - center_y) * sin_a + (this->machine_position[Z_AXIS] - center_z) * cos_a) + center_z, Z_AXIS);
+
         if (target[A_AXIS] != this->machine_position[A_AXIS])
         {
             //Calculating offset from target to rotation center

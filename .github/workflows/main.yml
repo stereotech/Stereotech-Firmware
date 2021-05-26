@@ -1,0 +1,57 @@
+
+name: CI
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: gcc
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Prepare environment
+        run: |
+          apt-get update -qq && apt-get install -y apt-utils libc6-dev-i386 build-essential lib32z1 lib32ncurses6
+          $GITHUB_WORKSPACE/linux_install
+          $GITHUB_WORKSPACE/BuildShell
+          echo "$GITHUB_WORKSPACE/gcc-arm-none-eabi/bin" >> $GITHUB_PATH
+      - name: Compile firmware
+        run: make clean all
+        
+      - name: Copy configuration folder
+        run: cp -r ConfigSamples/STEBoard/ LPC1768/configs
+        
+      - uses: actions/upload-artifact@v2.2.0
+        with:
+          name: firmware
+          path: |
+            LPC1768/configs
+            LPC1768/main.bin
+  
+  deploy:    
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/download-artifact@v2.0.5
+        with:
+          name: firmware
+          
+      - uses: TheDoctor0/zip-release@0.4.1
+        with:
+          filename: smoothie-build.zip
+      
+      - uses: ItsKarma/aws-cli@v1.70.0
+        with:
+          args: s3 cp smoothie-build.zip s3://${{ secrets.BUCKET_NAME }}/smoothieware/stable/ --acl public-read
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}

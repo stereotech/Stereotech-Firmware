@@ -26,12 +26,14 @@
 #include "Module.h"
 #include "StreamOutput.h"
 
-class USBSerial_Receiver {
+class USBSerial_Receiver
+{
 protected:
     virtual bool SerialEvent_RX(void) = 0;
 };
 
-class USBSerial: public USBCDC, public USBSerial_Receiver, public Module, public StreamOutput {
+class USBSerial : public USBCDC, public USBSerial_Receiver, public Module, public StreamOutput
+{
 public:
     USBSerial(USB *);
 
@@ -42,7 +44,7 @@ public:
     uint8_t available();
     bool ready();
 
-    uint16_t writeBlock(const uint8_t * buf, uint16_t size);
+    uint16_t writeBlock(const uint8_t *buf, uint16_t size);
 
     CircBuffer<uint8_t> rxbuf;
     CircBuffer<uint8_t> txbuf;
@@ -52,11 +54,11 @@ public:
     void on_idle(void *);
 
 protected:
-//     virtual bool EpCallback(uint8_t, uint8_t);
+    //     virtual bool EpCallback(uint8_t, uint8_t);
     virtual bool USBEvent_EPIn(uint8_t, uint8_t);
     virtual bool USBEvent_EPOut(uint8_t, uint8_t);
 
-    virtual bool SerialEvent_RX(void){return false;};
+    virtual bool SerialEvent_RX(void) { return false; };
 
     virtual void on_attach(void);
     virtual void on_detach(void);
@@ -67,24 +69,25 @@ protected:
     // this makes it trivial to detect if there's a new line available
     volatile int nl_in_rx;
 
-
-    volatile struct {
-        volatile bool attach:1;
-        bool attached:1;
-        bool halt_flag:1;
-        bool query_flag:1;
-        bool last_char_was_dollar:1;
+    volatile struct
+    {
+        volatile bool attach : 1;
+        bool attached : 1;
+        bool halt_flag : 1;
+        bool query_flag : 1;
+        bool soft_stop_flag : 1;
+        bool last_char_was_dollar : 1;
         // if we receive a line that's longer than the buffer, to avoid a deadlock
         // we must flush the buffer.
         // then to avoid delivering the tail of a line to Smoothie we must keep
         // flushing until we find a newline.
         // this flag asserts when we are doing this
-        bool flush_to_nl:1;
+        bool flush_to_nl : 1;
     };
 
 private:
     USB *usb;
-//     mbed::FunctionPointer rx;
+    //     mbed::FunctionPointer rx;
 };
 
 #endif

@@ -21,7 +21,7 @@ alpha_steps_per_mm                           640               # Steps per mm fo
 beta_steps_per_mm                            640               # Steps per mm for beta ( Y ) stepper
 gamma_steps_per_mm                           800             # Steps per mm for gamma ( Z ) stepper
 delta_steps_per_mm                           40
-epsilon_steps_per_mm                         40
+epsilon_steps_per_mm                         200
 zeta_steps_per_mm                            80
 
 # Planner module configuration : Look-ahead and acceleration configuration
@@ -59,10 +59,10 @@ delta_dir_pin                                1.14             # Pin for delta st
 delta_en_pin                                 1.16             # Pin for delta enable
 delta_max_rate                               7200.0          # Maxmimum rate in mm/min
 
-epsilon_step_pin                             2.11               # Pin for epsilon stepper step signal
-epsilon_dir_pin                              1.30!             # Pin for epsilon stepper direction, add '!' to reverse direction
-epsilon_en_pin                               2.12              # Pin for epsilon enable
-epsilon_max_rate                             7200.0          # Maxmimum rate in mm/min
+epsilon_step_pin                             2.8 #2.11               # Pin for epsilon stepper step signal
+epsilon_dir_pin                              2.13#1.30!             # Pin for epsilon stepper direction, add '!' to reverse direction
+epsilon_en_pin                               4.29#2.12              # Pin for epsilon enable
+epsilon_max_rate                             120.0          # Maxmimum rate in mm/min
 
 zeta_step_pin                                1.18              # Pin for zeta stepper step signal
 zeta_dir_pin                                 1.17!              # Pin for zeta stepper direction, add '!' to reverse direction
@@ -88,9 +88,9 @@ extruder.hotend2.default_feed_rate              600          # Default rate ( mm
 extruder.hotend2.acceleration                   500          # Acceleration for the stepper motor, as of 0.6, arbitrary ratio
 extruder.hotend2.max_speed                      50           # mm/s
 
-extruder.hotend2.step_pin                       2.8          # Pin for extruder step signal
-extruder.hotend2.dir_pin                        2.13         # Pin for extruder dir signal ( add '!' to reverse direction )
-extruder.hotend2.en_pin                         4.29         # Pin for extruder enable signal
+extruder.hotend2.step_pin                      2.11 #2.8          # Pin for extruder step signal
+extruder.hotend2.dir_pin                       1.30 #2.13         # Pin for extruder dir signal ( add '!' to reverse direction )
+extruder.hotend2.en_pin                        2.12 #4.29         # Pin for extruder enable signal
 
 #extruder.hotend2.x_offset                       0            # x offset from origin in mm
 #extruder.hotend2.y_offset                       25.0         # y offset from origin in mm
@@ -226,7 +226,7 @@ temperatureswitch.bottom.inverted              false          #
 ## Endstops new syntax (the name is not significant) ONLY use if you use A B or C axis endstops (DO NOT USE if using just XYZ)
 # NOTE only a min or a max homing endstop maybe defined
 endstop.minx.enable                          true             # enable an endstop
-endstop.minx.pin                             1.24o!             # pin
+endstop.minx.pin                             1.24!             # pin
 endstop.minx.homing_direction                home_to_min      # direction it moves to the endstop
 endstop.minx.homing_position                 0                # the cartesian coordinate this is set to when it homes
 endstop.minx.axis                            X                # the axis designator
@@ -265,7 +265,7 @@ endstop.maxz.retract                         5                # bounce off endst
 endstop.maxa.enable                          true             # enable an endstop
 endstop.maxa.pin                             1.22o!             # pin
 endstop.maxa.homing_direction                home_to_max      # direction it moves to the endstop
-endstop.maxa.homing_position                 90               # the cartesian coordinate this is set to when it homes
+endstop.maxa.homing_position                 60               # the cartesian coordinate this is set to when it homes
 endstop.maxa.axis                            A                # the axis designator
 endstop.maxa.max_travel                      200              # the maximum travel in mm before it times out
 endstop.maxa.fast_rate                       30               # fast homing rate in mm/sec

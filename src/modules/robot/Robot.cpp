@@ -593,6 +593,121 @@ void Robot::on_gcode_received(void *argument)
                         {
                             z -= to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
                         }
+                        //Enable sync between multiple coords
+                        if (gcode->has_letter('S'))
+                        {
+                            size_t sync_n = gcode->get_uint('S');
+                            if (sync_n == 0)
+                                sync_n = current_wcs; // set current coordinate system
+                            else
+                                --sync_n;
+                            if (sync_n < MAX_WCS && sync_n != n)
+                            {
+                                float sx, sy, sz;
+                                std::tie(sx, sy, sz) = wcs_offsets[sync_n];
+                                //X axis of the sync wcs
+                                if (gcode->has_letter('U'))
+                                {
+                                    size_t target_x = gcode->get_uint('U');
+                                    if (target_x == X_AXIS)
+                                    {
+                                        sx -= to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);
+                                    }
+                                    if (target_x == Y_AXIS)
+                                    {
+                                        sx -= to_millimeters(gcode->get_value('Y')) - std::get<Y_AXIS>(pos);
+                                    }
+                                    if (target_x == Z_AXIS)
+                                    {
+                                        sx -= to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
+                                    }
+                                    if (target_x == 5 - X_AXIS)
+                                    {
+                                        sx += to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);
+                                    }
+                                    if (target_x == 5 - Y_AXIS)
+                                    {
+                                        sx += to_millimeters(gcode->get_value('Y')) - std::get<Y_AXIS>(pos);
+                                    }
+                                    if (target_x == 5 - Z_AXIS)
+                                    {
+                                        sx += to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
+                                    }
+                                }
+                                //V axis of the sync wcs
+                                if (gcode->has_letter('V'))
+                                {
+                                    size_t target_y = gcode->get_uint('V');
+                                    if (target_y == X_AXIS)
+                                    {
+                                        sy -= to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);
+                                    }
+                                    if (target_y == Y_AXIS)
+                                    {
+                                        sy -= to_millimeters(gcode->get_value('Y')) - std::get<Y_AXIS>(pos);
+                                    }
+                                    if (target_y == Z_AXIS)
+                                    {
+                                        sy -= to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
+                                    }
+                                    if (target_y == 5 - X_AXIS)
+                                    {
+                                        sy += to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);
+                                    }
+                                    if (target_y == 5 - Y_AXIS)
+                                    {
+                                        sy += to_millimeters(gcode->get_value('Y')) - std::get<Y_AXIS>(pos);
+                                    }
+                                    if (target_y == 5 - Z_AXIS)
+                                    {
+                                        sy += to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
+                                    }
+                                }
+                                //W axis of the sync wcs
+                                if (gcode->has_letter('W'))
+                                {
+                                    size_t target_z = gcode->get_uint('W');
+                                    if (target_z == X_AXIS)
+                                    {
+                                        sz -= to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);
+                                    }
+                                    if (target_z == Y_AXIS)
+                                    {
+                                        sz -= to_millimeters(gcode->get_value('Y')) - std::get<Y_AXIS>(pos);
+                                    }
+                                    if (target_z == Z_AXIS)
+                                    {
+                                        sz -= to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
+                                    }
+                                    if (target_z == 5 - X_AXIS)
+                                    {
+                                        sz += to_millimeters(gcode->get_value('X')) - std::get<X_AXIS>(pos);
+                                    }
+                                    if (target_z == 5 - Y_AXIS)
+                                    {
+                                        sz += to_millimeters(gcode->get_value('Y')) - std::get<Y_AXIS>(pos);
+                                    }
+                                    if (target_z == 5 - Z_AXIS)
+                                    {
+                                        sz += to_millimeters(gcode->get_value('Z')) - std::get<Z_AXIS>(pos);
+                                    }
+                                }
+                                //offsets must be positive
+                                if (sx < 0)
+                                {
+                                    sx = 0;
+                                }
+                                if (sy < 0)
+                                {
+                                    sy = 0;
+                                }
+                                if (sz < 0)
+                                {
+                                    sz = 0;
+                                }
+                                wcs_offsets[sync_n] = wcs_t(sx, sy, sz);
+                            }
+                        }
                     }
                     else
                     {

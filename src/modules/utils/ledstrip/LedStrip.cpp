@@ -39,10 +39,17 @@ void LedStrip::on_module_loaded()
     this->duration = 0;
     this->duration_set = false;
 
+    this->register_for_event(ON_HALT);
     this->register_for_event(ON_GCODE_RECEIVED);
 
     //settings
     this->on_config_reload(this);
+}
+
+void LedStrip::on_halt(void *argument)
+{
+    //turn red on error
+    this->set_color(255.0F, 0.0F, 0.0F);
 }
 
 void LedStrip::on_config_reload(void *argument)

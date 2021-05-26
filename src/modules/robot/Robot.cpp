@@ -1435,6 +1435,9 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 #endif
 
+    float compensated_target[n_motors];
+    memcpy(compensated_target, target, n_motors * sizeof(float));
+
     if (this->use_workpiece_offset)
     {
         float deg_to_rad = 0.01745329251F;
@@ -1446,8 +1449,8 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         float center_z = std::get<Z_AXIS>(wcs_offsets[2]);
         float target_y = ((target[Y_AXIS] - center_y) * cos_a - (target[Z_AXIS] - center_z) * sin_a) + center_y;
         float target_z = ((target[Y_AXIS] - center_y) * sin_a + (target[Z_AXIS] - center_z) * cos_a) + center_z;
-        target[Y_AXIS] = target_y;
-        target[Z_AXIS] = target_z;
+        compensated_target[Y_AXIS] = target_y;
+        compensated_target[Z_AXIS] = target_z;
 
         if (target[A_AXIS] != this->machine_position[A_AXIS])
         {
@@ -1475,15 +1478,41 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
     bool moved = false;
 
-    if (this->use_workpiece_offset && target[A_AXIS] != this->machine_position[A_AXIS])
+    if (this->use_workpiece_offset)
     {
-        float delta_a = target[A_AXIS] - this->machine_position[A_AXIS];
-        float delta_sign = 1;
-        if (delta_a != 0)
+        if (target[A_AXIS] != this->machine_position[A_AXIS])
         {
-            delta_sign = delta_a / abs(delta_a);
+            float delta_a = target[A_AXIS] - this->machine_position[A_AXIS];
+            float delta_sign = 1;
+            if (delta_a != 0)
+            {
+                delta_sign = delta_a / abs(delta_a);
+            }
+            moved = this->compute_arc(gcode, offset, compensated_target, delta_sign > 0 ? CCW_ARC : CW_ARC, delta_e);
         }
-        moved = this->compute_arc(gcode, offset, target, delta_sign > 0 ? CCW_ARC : CW_ARC, delta_e);
+        else
+        {
+            // Perform any physical actions
+            switch (motion_mode)
+            {
+            case NONE:
+                break;
+
+            case SEEK:
+                moved = this->append_line(gcode, compensated_target, this->seek_rate / seconds_per_minute, delta_e);
+                break;
+
+            case LINEAR:
+                moved = this->append_line(gcode, compensated_target, this->feed_rate / seconds_per_minute, delta_e);
+                break;
+
+            case CW_ARC:
+            case CCW_ARC:
+                // Note arcs are not currently supported by extruder based machines, as 3D slicers do not use arcs (G2/G3)
+                moved = this->compute_arc(gcode, offset, compensated_target, motion_mode, delta_e);
+                break;
+            }
+        }
     }
     else
     {

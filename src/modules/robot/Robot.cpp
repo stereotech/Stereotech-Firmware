@@ -1441,7 +1441,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     if (this->use_workpiece_offset)
     {
         float deg_to_rad = 0.01745329251F;
-        float angular_pos = deg_to_rad * this->machine_position[A_AXIS] * 1.5;
+        float angular_pos = deg_to_rad * target[A_AXIS] * 1.5;
         float cos_a = cosf(angular_pos);
         float sin_a = sinf(angular_pos);
         // rotation center in absolute coordinates
@@ -1488,7 +1488,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
             {
                 delta_sign = delta_a / abs(delta_a);
             }
-            moved = this->compute_arc(gcode, offset, compensated_target, delta_sign > 0 ? CCW_ARC : CW_ARC, delta_e);
+            moved = this->compute_arc(gcode, offset, target, delta_sign > 0 ? CCW_ARC : CW_ARC, delta_e);
         }
         else
         {

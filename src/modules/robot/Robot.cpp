@@ -1435,17 +1435,33 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 #endif
 
-    if (this->use_workpiece_offset && target[A_AXIS] != this->machine_position[A_AXIS])
+    if (this->use_workpiece_offset)
     {
-        //Calculating offset from target to rotation center
-        offset[X_AXIS] = 0;
-        float offset_y = std::get<Y_AXIS>(wcs_offsets[1]) - this->arc_milestone[Y_AXIS];
-        float offset_z = std::get<Z_AXIS>(wcs_offsets[2]) - this->arc_milestone[Z_AXIS];
         float deg_to_rad = 0.01745329251F;
         float angular_pos = deg_to_rad * this->machine_position[A_AXIS] * 1.5;
-        offset[Y_AXIS] = offset_y * cosf(angular_pos) - offset_z * sinf(angular_pos);
-        offset[Z_AXIS] = offset_y * sinf(angular_pos) + offset_z * cosf(angular_pos);
-        gcode->stream->printf("Current workpiece offset is: X:%1.4f Y:%1.4f Z:%1.4f\n", offset[X_AXIS], offset[Y_AXIS], offset[Z_AXIS]);
+        float cos_a = cosf(angular_pos);
+        float sin_a = sinf(angular_pos);
+
+        if (target[A_AXIS] != this->machine_position[A_AXIS])
+        {
+            //Calculating offset from target to rotation center
+            offset[X_AXIS] = 0;
+            float offset_y = std::get<Y_AXIS>(wcs_offsets[1]) - this->arc_milestone[Y_AXIS];
+            float offset_z = std::get<Z_AXIS>(wcs_offsets[2]) - this->arc_milestone[Z_AXIS];
+            offset[Y_AXIS] = offset_y * cos_a - offset_z * sin_a;
+            offset[Z_AXIS] = offset_y * sin_a + offset_z * cos_a;
+            gcode->stream->printf("Current workpiece offset is: X:%1.4f Y:%1.4f Z:%1.4f\n", offset[X_AXIS], offset[Y_AXIS], offset[Z_AXIS]);
+        }
+        else
+        {
+            // rotation center in absolute coordinates
+            float center_y = std::get<Y_AXIS>(wcs_offsets[1]);
+            float center_z = std::get<Z_AXIS>(wcs_offsets[2]);
+            float target_y = ((target[Y_AXIS] - center_y) * cos_a - (target[Z_AXIS] - center_z) * sin_a) + center_y;
+            float target_z = ((target[Y_AXIS] - center_y) * sin_a + (target[Z_AXIS] - center_z) * cos_a) + center_z;
+            target[Y_AXIS] = target_y;
+            target[Z_AXIS] = target_z;
+        }
     }
 
     if (gcode->has_letter('F'))

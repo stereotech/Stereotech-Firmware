@@ -1484,10 +1484,6 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
             delta_sign = delta_a / abs(delta_a);
         }
         moved = this->compute_arc(gcode, offset, target, delta_sign > 0 ? CCW_ARC : CW_ARC, delta_e);
-        if (moved)
-        {
-            reset_axis_position(target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
-        }
     }
     else
     {
@@ -1521,6 +1517,10 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     {
         // set machine_position to the calculated target
         //memcpy(machine_position, target, n_motors * sizeof(float));
+        if (this->use_workpiece_offset)
+        {
+            reset_axis_position(target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
+        }
         memcpy(machine_position, target, n_motors * sizeof(float));
     }
 }

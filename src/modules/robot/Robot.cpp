@@ -1435,37 +1435,20 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
     }
 #endif
 
-    float compensated_target[n_motors];
-    memcpy(compensated_target, target, n_motors * sizeof(float));
-
     if (this->use_workpiece_offset)
     {
         float deg_to_rad = 0.01745329251F;
         float angular_pos = deg_to_rad * this->machine_position[A_AXIS] * 1.5;
         float cos_a = cosf(angular_pos);
         float sin_a = sinf(angular_pos);
-        // rotation center in absolute coordinates
-        float center_y = std::get<Y_AXIS>(wcs_offsets[1]);
-        float center_z = std::get<Z_AXIS>(wcs_offsets[2]);
-        float target_y = ((target[Y_AXIS] - center_y) * cos_a - (target[Z_AXIS] - center_z) * sin_a) + center_y;
-        float target_z = ((target[Y_AXIS] - center_y) * sin_a + (target[Z_AXIS] - center_z) * cos_a) + center_z;
-        compensated_target[Y_AXIS] = target_y;
-        compensated_target[Z_AXIS] = target_z;
 
-        float machine_position_y = ((this->machine_position[Y_AXIS] - center_y) * cos_a - (this->machine_position[Z_AXIS] - center_z) * sin_a) + center_y;
-        //reset_axis_position(machine_position_y, Y_AXIS);
-        //reset_axis_position(((this->machine_position[Y_AXIS] - center_y) * sin_a + (this->machine_position[Z_AXIS] - center_z) * cos_a) + center_z, Z_AXIS);
-
-        //if (target[A_AXIS] != this->machine_position[A_AXIS])
-        //{
         //Calculating offset from target to rotation center
         offset[X_AXIS] = 0;
         float offset_y = std::get<Y_AXIS>(wcs_offsets[1]) - this->arc_milestone[Y_AXIS];
         float offset_z = std::get<Z_AXIS>(wcs_offsets[2]) - this->arc_milestone[Z_AXIS];
         offset[Y_AXIS] = offset_y * cos_a - offset_z * sin_a;
         offset[Z_AXIS] = offset_y * sin_a + offset_z * cos_a;
-        gcode->stream->printf("Current workpiece offset is: X:%1.4f Y:%1.4f Z:%1.4f\n", offset[X_AXIS], offset[Y_AXIS], offset[Z_AXIS]);
-        //}
+        //gcode->stream->printf("Current workpiece offset is: X:%1.4f Y:%1.4f Z:%1.4f\n", offset[X_AXIS], offset[Y_AXIS], offset[Z_AXIS]);
     }
 
     if (gcode->has_letter('F'))
@@ -1484,35 +1467,9 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
 
     if (this->use_workpiece_offset)
     {
-        //if (target[A_AXIS] != this->machine_position[A_AXIS])
-        //{
         float delta_a = target[A_AXIS] - this->machine_position[A_AXIS];
 
         moved = this->compute_arc(gcode, offset, target, delta_a >= 0 ? CCW_ARC : CW_ARC, delta_e);
-        //}
-        //else
-        //{
-        //    // Perform any physical actions
-        //    switch (motion_mode)
-        //    {
-        //    case NONE:
-        //        break;
-        //
-        //    case SEEK:
-        //        moved = this->append_line(gcode, compensated_target, this->seek_rate / seconds_per_minute, delta_e);
-        //        break;
-        //
-        //    case LINEAR:
-        //        moved = this->append_line(gcode, compensated_target, this->feed_rate / seconds_per_minute, delta_e);
-        //        break;
-        //
-        //    case CW_ARC:
-        //    case CCW_ARC:
-        //        // Note arcs are not currently supported by extruder based machines, as 3D slicers do not use arcs (G2/G3)
-        //        moved = this->compute_arc(gcode, offset, compensated_target, motion_mode, delta_e);
-        //        break;
-        //    }
-        //}
     }
     else
     {
@@ -2070,8 +2027,8 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     float r_axis0 = -offset[this->plane_axis_0]; // Radius vector from center to start position
     float r_axis1 = -offset[this->plane_axis_1];
 
-    gcode->stream->printf("Center axis is: Y:%1.4f Z:%1.4f\n", center_axis0, center_axis1);
-    gcode->stream->printf("R axis is: Y:%1.4f Z:%1.4f\n", r_axis0, r_axis1);
+    //gcode->stream->printf("Center axis is: Y:%1.4f Z:%1.4f\n", center_axis0, center_axis1);
+    //gcode->stream->printf("R axis is: Y:%1.4f Z:%1.4f\n", r_axis0, r_axis1);
 
     float deg_to_rad = 0.01745329251F;
     float angular_travel = deg_to_rad * (target[A_AXIS] - this->machine_position[A_AXIS]) * 1.5;
@@ -2082,14 +2039,14 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     float linear_axis0 = linear_delta_axis0 * cosf(angular_target) - linear_delta_axis1 * sinf(angular_target);
     float linear_axis1 = linear_delta_axis0 * sinf(angular_target) + linear_delta_axis1 * cosf(angular_target);
 
-    gcode->stream->printf("linear axis is: Y:%1.4f Z:%1.4f\n", linear_axis0, linear_axis1);
+    //gcode->stream->printf("linear axis is: Y:%1.4f Z:%1.4f\n", linear_axis0, linear_axis1);
 
-    gcode->stream->printf("Angular travel is: %1.4f\n", angular_travel);
+    //gcode->stream->printf("Angular travel is: %1.4f\n", angular_travel);
 
     float rt_axis0 = (r_axis0)*cosf(angular_travel) - (r_axis1)*sinf(angular_travel); //target[this->plane_axis_0] - this->arc_milestone[this->plane_axis_0] - offset[this->plane_axis_0]; // Radius vector from center to target position
     float rt_axis1 = (r_axis0)*sinf(angular_travel) + (r_axis1)*cosf(angular_travel); //target[this->plane_axis_1] - this->arc_milestone[this->plane_axis_1] - offset[this->plane_axis_1];
 
-    gcode->stream->printf("RT axis is: Y:%1.4f Z:%1.4f\n", rt_axis0, rt_axis1);
+    //gcode->stream->printf("RT axis is: Y:%1.4f Z:%1.4f\n", rt_axis0, rt_axis1);
 
     float compensated_target[n_motors];
     memcpy(compensated_target, target, n_motors * sizeof(float));
@@ -2097,7 +2054,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0 + linear_axis0;
     compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1 + linear_axis1;
 
-    gcode->stream->printf("compensated_target axis is: Y:%1.4f Z:%1.4f\n", compensated_target[this->plane_axis_0], compensated_target[this->plane_axis_1]);
+    //gcode->stream->printf("compensated_target axis is: Y:%1.4f Z:%1.4f\n", compensated_target[this->plane_axis_0], compensated_target[this->plane_axis_1]);
 
     //check for condition where atan2 formula will fail due to everything canceling out exactly
     if ((this->arc_milestone[this->plane_axis_0] == compensated_target[this->plane_axis_0]) && (this->arc_milestone[this->plane_axis_1] == compensated_target[this->plane_axis_1]))

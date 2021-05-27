@@ -1443,7 +1443,7 @@ void Robot::process_move(Gcode *gcode, enum MOTION_MODE_T motion_mode)
         float sin_a = sinf(angular_pos);
 
         //Calculating offset from target to rotation center
-        offset[X_AXIS] = 0;
+        offset[X_AXIS] = (std::get<X_AXIS>(wcs_offsets[1]) - std::get<X_AXIS>(wcs_offsets[2])) * sin_a;
         float offset_y = std::get<Y_AXIS>(wcs_offsets[1]) - this->arc_milestone[Y_AXIS];
         float offset_z = std::get<Z_AXIS>(wcs_offsets[2]) - this->arc_milestone[Z_AXIS];
         offset[Y_AXIS] = offset_y * cos_a - offset_z * sin_a;
@@ -2053,6 +2053,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
 
     compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0 + linear_axis0;
     compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1 + linear_axis1;
+    compensated_target[this->plane_axis_2] = target[this->plane_axis_2] + offset[plane_axis_2];
 
     //gcode->stream->printf("compensated_target axis is: Y:%1.4f Z:%1.4f\n", compensated_target[this->plane_axis_0], compensated_target[this->plane_axis_1]);
 

@@ -2109,7 +2109,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
 
     if (millimeters_of_travel < 0.000001F)
     {
-        return this->append_milestone(target, rate_mm_s);
+        return this->append_milestone(compensated_target, rate_mm_s);
     }
 
     // limit segments by maximum arc error

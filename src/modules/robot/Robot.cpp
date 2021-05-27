@@ -2053,7 +2053,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
 
     compensated_target[this->plane_axis_0] = center_axis0 + rt_axis0 + linear_axis0;
     compensated_target[this->plane_axis_1] = center_axis1 + rt_axis1 + linear_axis1;
-    compensated_target[this->plane_axis_2] = target[this->plane_axis_2] + offset[plane_axis_2];
+    compensated_target[this->plane_axis_2] = target[this->plane_axis_2] + offset[this->plane_axis_2];
 
     //gcode->stream->printf("compensated_target axis is: Y:%1.4f Z:%1.4f\n", compensated_target[this->plane_axis_0], compensated_target[this->plane_axis_1]);
 

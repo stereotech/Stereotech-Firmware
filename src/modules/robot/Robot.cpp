@@ -2023,7 +2023,7 @@ bool Robot::append_arc(Gcode *gcode, const float target[], const float offset[],
     // We need to use arc_milestone here to get accurate arcs as previous machine_position may have been skipped due to small movements
     float center_axis0 = this->arc_milestone[this->plane_axis_0] + offset[this->plane_axis_0];
     float center_axis1 = this->arc_milestone[this->plane_axis_1] + offset[this->plane_axis_1];
-    float linear_travel = target[this->plane_axis_2] - this->arc_milestone[this->plane_axis_2];
+    float linear_travel = target[this->plane_axis_2] + offset[this->plane_axis_2] - this->arc_milestone[this->plane_axis_2];
     float r_axis0 = -offset[this->plane_axis_0]; // Radius vector from center to start position
     float r_axis1 = -offset[this->plane_axis_1];
 

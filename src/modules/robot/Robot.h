@@ -64,7 +64,7 @@ public:
     uint8_t get_number_registered_motors() const { return n_motors; }
 
     BaseSolution *arm_solution; // Selected Arm solution ( millimeters to step calculation )
-
+    BaseSolution *rotary_solution;
     // gets accessed by Panel, Endstops, ZProbe
     std::vector<StepperMotor *> actuators;
 

@@ -197,7 +197,7 @@ void Robot::load_config()
     if (this->rotary_solution)
         delete this->rotary_solution;
     int rotary_solution_checksum_v = get_checksum(THEKERNEL->config->value(rotary_solution_checksum)->by_default("cartesian")->as_string());
-    if (rotary_solution_checksum_v == delt_diff_checksum)
+    if (rotary_solution_checksum_v == belt_diff_checksum)
     {
         this->rotary_solution = new BeltDiffRoraryAxisSolution(THEKERNEL->config);
     }

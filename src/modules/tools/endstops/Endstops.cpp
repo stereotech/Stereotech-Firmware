@@ -71,6 +71,7 @@ enum DEFNS
 #define delta_homing_checksum CHECKSUM("delta_homing")
 #define rdelta_homing_checksum CHECKSUM("rdelta_homing")
 #define scara_homing_checksum CHECKSUM("scara_homing")
+#define belt_diff_rotary_homing_checksum CHECKSUM("belt_diff_rotary_homing")
 
 #define endstop_debounce_count_checksum CHECKSUM("endstop_debounce_count")
 #define endstop_debounce_ms_checksum CHECKSUM("endstop_debounce_ms")
@@ -439,6 +440,8 @@ void Endstops::get_global_configs()
     this->is_rdelta = THEKERNEL->config->value(rdelta_homing_checksum)->by_default(false)->as_bool();
     this->is_scara = THEKERNEL->config->value(scara_homing_checksum)->by_default(false)->as_bool();
 
+    this->is_belt_diff_rotary_homing = THEKERNEL->config->value(belt_diff_rotary_homing_checksum)->by_default(false)->as_bool();
+
     this->home_z_first = THEKERNEL->config->value(home_z_first_checksum)->by_default(false)->as_bool();
 
     this->trim_mm[0] = THEKERNEL->config->value(alpha_trim_checksum)->by_default(0)->as_number();
@@ -663,6 +666,9 @@ uint32_t Endstops::read_endstops(uint32_t dummy)
         if (is_corexy && (m == X_AXIS || m == Y_AXIS) && !axis_to_home[m])
             continue;
 
+        if (is_belt_diff_rotary_homing && (m == A_AXIS || m = C_AXIS) && !axis_to_home[m])
+            continue;
+
         if (STEPPER[m]->is_moving())
         {
             // if it is moving then we check the associated endstop, and debounce it
@@ -679,6 +685,11 @@ uint32_t Endstops::read_endstops(uint32_t dummy)
                         // corexy when moving in X or Y we need to stop both the X and Y motors
                         STEPPER[X_AXIS]->stop_moving();
                         STEPPER[Y_AXIS]->stop_moving();
+                    }
+                    else if (is_belt_diff_rotary_homing && (m == A_AXIS || m == C_AXIS))
+                    {
+                        STEPPER[A_AXIS]->stop_moving();
+                        STEPPER[C_AXIS]->stop_moving();
                     }
                     else
                     {

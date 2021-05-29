@@ -666,7 +666,7 @@ uint32_t Endstops::read_endstops(uint32_t dummy)
         if (is_corexy && (m == X_AXIS || m == Y_AXIS) && !axis_to_home[m])
             continue;
 
-        if (is_belt_diff_rotary_homing && (m == A_AXIS || m = C_AXIS) && !axis_to_home[m])
+        if (is_belt_diff_rotary_homing && (m == A_AXIS || m == C_AXIS) && !axis_to_home[m])
             continue;
 
         if (STEPPER[m]->is_moving())

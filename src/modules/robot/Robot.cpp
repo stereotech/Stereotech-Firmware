@@ -24,6 +24,7 @@
 #include "arm_solutions/HBotSolution.h"
 #include "arm_solutions/CoreXZSolution.h"
 #include "arm_solutions/MorganSCARASolution.h"
+#include "arm_solutions/BeltDiffRotaryAxisSolution.h"
 #include "StepTicker.h"
 #include "checksumm.h"
 #include "utils.h"
@@ -59,6 +60,7 @@
 
 // arm solutions
 #define arm_solution_checksum CHECKSUM("arm_solution")
+#define rotary_solution_checksum CHECKSUM("rotary_solution")
 #define cartesian_checksum CHECKSUM("cartesian")
 #define rotatable_cartesian_checksum CHECKSUM("rotatable_cartesian")
 #define rostock_checksum CHECKSUM("rostock")
@@ -70,6 +72,7 @@
 #define corexz_checksum CHECKSUM("corexz")
 #define kossel_checksum CHECKSUM("kossel")
 #define morgan_checksum CHECKSUM("morgan")
+#define belt_diff_checksum CHECKSUM("belt_diff")
 
 // new-style actuator stuff
 #define actuator_checksum CHEKCSUM("actuator")
@@ -191,6 +194,18 @@ void Robot::load_config()
         this->arm_solution = new CartesianSolution(THEKERNEL->config);
     }
 
+    if (this->rotary_solution)
+        delete this->rotary_solution;
+    int rotary_solution_checksum_v = get_checksum(THEKERNEL->config->value(rotary_solution_checksum)->by_default("cartesian")->as_string());
+    if (rotary_solution_checksum_v == belt_diff_checksum)
+    {
+        this->rotary_solution = new BeltDiffRoraryAxisSolution(THEKERNEL->config);
+    }
+    else
+    {
+        this->rotary_solution = new CartesianSolution(THEKERNEL->config);
+    }
+
     this->feed_rate = THEKERNEL->config->value(default_feed_rate_checksum)->by_default(100.0F)->as_number();
     this->seek_rate = THEKERNEL->config->value(default_seek_rate_checksum)->by_default(100.0F)->as_number();
     this->mm_per_line_segment = THEKERNEL->config->value(mm_per_line_segment_checksum)->by_default(0.0F)->as_number();
@@ -223,16 +238,15 @@ void Robot::load_config()
     this->s_value = THEKERNEL->config->value(laser_module_default_power_checksum)->by_default(0.8F)->as_number();
 
     // Make our Primary XYZ StepperMotors, and potentially A B C
-    uint16_t const motor_checksums[][6] = {
-        ACTUATOR_CHECKSUMS("alpha"), // X
-        ACTUATOR_CHECKSUMS("beta"),  // Y
-        ACTUATOR_CHECKSUMS("gamma"), // Z
+    uint16_t const motor_checksums[][6] = { ACTUATOR_CHECKSUMS("alpha"), // X
+                                            ACTUATOR_CHECKSUMS("beta"),  // Y
+                                            ACTUATOR_CHECKSUMS("gamma"), // Z
 #if MAX_ROBOT_ACTUATORS > 3
-        ACTUATOR_CHECKSUMS("delta"), // A
+                                            ACTUATOR_CHECKSUMS("delta"), // A
 #if MAX_ROBOT_ACTUATORS > 4
-        ACTUATOR_CHECKSUMS("epsilon"), // B
+                                            ACTUATOR_CHECKSUMS("epsilon"), // B
 #if MAX_ROBOT_ACTUATORS > 5
-        ACTUATOR_CHECKSUMS("zeta") // C
+                                            ACTUATOR_CHECKSUMS("zeta") // C
 #endif
 #endif
 #endif
@@ -298,6 +312,7 @@ void Robot::load_config()
     }
 
 #if MAX_ROBOT_ACTUATORS > 3
+    rotary_solution->cartesian_to_actuator(machine_position, actuator_pos);
     // initialize any extra axis to machine position
     for (size_t i = A_AXIS; i < n_motors; i++)
     {
@@ -1585,6 +1600,7 @@ void Robot::reset_position_from_current_actuator_position()
 
     // discover machine position from where actuators actually are
     arm_solution->actuator_to_cartesian(actuator_pos, compensated_machine_position);
+    rotary_solution->actuator_to_cartesian(actuator_pos, compensated_machine_position);
     memcpy(machine_position, compensated_machine_position, sizeof machine_position);
 
     // compensated_machine_position includes the compensation transform so we need to get the inverse to get actual machine_position
@@ -1602,6 +1618,7 @@ void Robot::reset_position_from_current_actuator_position()
 
 // Handle extruders and/or ABC axis
 #if MAX_ROBOT_ACTUATORS > 3
+    rotary_solution->cartesian_to_actuator(compensated_machine_position, actuator_pos);
     for (int i = A_AXIS; i < n_motors; i++)
     {
         // ABC and/or extruders just need to set machine_position and compensated_machine_position
@@ -1784,11 +1801,22 @@ bool Robot::append_milestone(const float target[], float rate_mm_s)
     }
 
 #if MAX_ROBOT_ACTUATORS > 3
+    if (!disable_arm_solution)
+    {
+        rotary_solution->cartesian_to_actuator(transformed_target, actuator_pos);
+    }
+    else
+    {
+        for (size_t i = A_AXIS; i < n_motors; i++)
+        {
+            actuator_pos[i] = transformed_target[i];
+        }
+    }
+
     sos = 0;
     // for the extruders just copy the position, and possibly scale it from mm³ to mm
     for (size_t i = A_AXIS; i < n_motors; i++)
     {
-        actuator_pos[i] = transformed_target[i];
         if (actuators[i]->is_extruder() && get_e_scale_fnc)
         {
             // NOTE this relies on the fact only one extruder is active at a time
